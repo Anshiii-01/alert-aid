@@ -2,102 +2,142 @@
 
 <div align="center">
 
+![Alert Aid Banner](https://capsule-render.vercel.app/api?type=waving&color=000000&height=300&section=header&text=Alert%20Aid&fontSize=90&animation=fadeIn&fontAlignY=38&desc=AI-Powered%20Disaster%20Prediction%20&%20Response%20System&descAlignY=51&descAlign=62)
+
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Sentry](https://img.shields.io/badge/Sentry-362D59?style=for-the-badge&logo=sentry&logoColor=white)](https://sentry.io/)
+
 **Professional disaster prediction and emergency management system powered by Machine Learning**
 
-Alert Aid is a production-ready disaster prediction and alert system built with React, TypeScript, and advanced ML capabilities. Features an interactive 3D globe, real-time weather monitoring, and intelligent risk assessment.
+[View Demo](https://alert-aid.vercel.app) • [Report Bug](https://github.com/ayushap18/congenial-waddle/issues) • [Request Feature](https://github.com/ayushap18/congenial-waddle/issues)
 
 </div>
 
-## ✨ Features
+---
 
-- 🌍 **Interactive 3D Globe** - Real-time disaster visualization with risk heat maps
-- ⭐ **Interactive Starfield Background** - Performance-optimized canvas animation with mouse interaction
-- 📊 **ML-Powered Predictions** - Earthquake, flood, fire, and storm predictions
-- 🌤️ **Real-time Weather** - Live weather data integration with 7-day forecasts
+## 🌟 Overview
 
-- 📍 **Smart Location Detection** - GPS-based location with manual override support
+**Alert Aid** is a production-ready disaster prediction system that leverages **Artificial Intelligence** to save lives. By analyzing real-time environmental data, it predicts the probability of natural disasters like floods, wildfires, earthquakes, and storms with **90%+ accuracy**.
 
-</div>- 🚑 **Emergency Response** - Communication hub and evacuation planning
+### 🚀 New Features (v2.0)
 
-- ♿ **Accessibility First** - WCAG 2.1 compliant with keyboard navigation
-
----- 🚀 **Production Ready** - Lazy loading, code splitting, and optimized builds
-
-
-
-## 📋 Table of Contents## 🛠️ Technology Stack
-
-
-
-- [Overview](#-overview)- **Frontend**: React 19.2.0, TypeScript 4.9.5
-
-- [Features](#-features)- **3D Graphics**: Three.js, React Globe GL, @react-three/fiber
-
-- [Tech Stack](#-tech-stack)- **Styling**: Styled Components 6.1.19
-
-- [Installation](#-installation)- **Routing**: React Router DOM 7.9.4
-
-- [Configuration](#-configuration)- **Charts**: Recharts 3.2.1
-
-- [Usage](#-usage)- **Icons**: Lucide React
-
-- [API Reference](#-api-reference)- **Testing**: Jest, React Testing Library
-
-- [Deployment](#-deployment)- **Build**: Create React App 5.0.1
-
-- [Contributing](#-contributing)
-
-## 📋 Prerequisites
+| Feature | Description | Tech Stack |
+|---------|-------------|------------|
+| **📊 Interactive ML Dashboard** | Manual risk prediction playground | ![Streamlit](https://img.shields.io/badge/-Streamlit-FF4B4B?style=flat&logo=streamlit&logoColor=white) |
+| **🛡️ Real-time Monitoring** | Full-stack error tracking & performance profiling | ![Sentry](https://img.shields.io/badge/-Sentry-362D59?style=flat&logo=sentry&logoColor=white) |
+| **🌍 3D Visualization** | Interactive globe with heatmaps | ![Three.js](https://img.shields.io/badge/-Three.js-000000?style=flat&logo=three.js&logoColor=white) |
 
 ---
 
-- Node.js 18.x or 20.x
+## 🛠️ Tech Stack & Architecture
 
-## 🌟 Overview- npm 9.x or higher
+<div align="center">
 
-- Modern browser with WebGL support
+### Frontend
+![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.9.5-3178C6?logo=typescript)
+![Styled Components](https://img.shields.io/badge/Styled_Components-6.1.19-DB7093?logo=styled-components)
+![Recharts](https://img.shields.io/badge/Recharts-3.2.1-22b5bf?logo=react)
 
-Alert Aid is a comprehensive disaster prediction and emergency management system that uses advanced Machine Learning models to predict natural disasters with **90%+ accuracy**. The platform provides real-time weather monitoring, air quality tracking, emergency response coordination, and evacuation planning—all in one intuitive dashboard.
+### Backend & ML
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-009688?logo=fastapi)
+![Scikit-Learn](https://img.shields.io/badge/Scikit_Learn-1.3.0-F7931E?logo=scikit-learn)
+![Pandas](https://img.shields.io/badge/Pandas-2.0.3-150458?logo=pandas)
 
-## 🚀 Getting Started
+### DevOps & Monitoring
+![Sentry](https://img.shields.io/badge/Sentry-Monitoring-362D59?logo=sentry)
+![Vercel](https://img.shields.io/badge/Vercel-Deployment-000000?logo=vercel)
+![Railway](https://img.shields.io/badge/Railway-Backend-0B0D0E?logo=railway)
 
-### Why Alert Aid?
+</div>
 
-### Installation
+---
 
-- 🎯 **Highly Accurate ML Predictions** - 90%+ accuracy for flood, fire, storm, and earthquake predictions
+## ⚡ Quick Start
 
-- 🌍 **Real-time Monitoring** - Live weather data, 7-day forecasts, and air quality index tracking```bash
-
-- 📍 **Smart Location Services** - GPS-based detection with manual search and triple API fallback# Clone the repository
-
-- 🚨 **Emergency Response** - Indian emergency numbers (112, 100, 101, 102, 108) integrationgit clone <repository-url>
-
-- 📊 **Comprehensive Reports** - Downloadable PDF/CSV reports with ML metricscd alert-aid
-
-- 🎨 **Modern UI/UX** - Dark theme with responsive design and interactive 3D globe visualization
-
-# Install dependencies
-
----npm install
-
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ayushap18/congenial-waddle.git
+cd congenial-waddle
 ```
 
-## ✨ Features
+### 2. Setup Backend (FastAPI + Streamlit)
+```bash
+cd backend
+pip install -r requirements.txt
 
-### Development
+# Start API Server
+uvicorn main:app --reload --port 8000
 
-### 🤖 Machine Learning Engine
+# Start ML Dashboard (New!)
+streamlit run streamlit_app.py
+```
 
-- **4 Specialized ML Models**: Flood, Fire, Earthquake, and Storm prediction```bash
+### 3. Setup Frontend (React)
+```bash
+# Open a new terminal
+cd ..
+npm install
+npm start
+```
 
-- **Advanced Training**: 25,000 samples per disaster type with 10+ features# Start the development server
+---
 
-- **High Accuracy**: 90%+ accuracy, F1 scores ranging from 89-94%npm start
+## 📊 New Dashboards
 
-- **Feature-Rich**: Includes precipitation, vegetation index, soil moisture, temperature changes
+### 🧠 Streamlit ML Playground
+Located at `http://localhost:8501`
 
-- **Model Persistence**: Joblib-based model storage with metadata tracking# Runs on http://localhost:3000
+A dedicated interface for data scientists and emergency responders to manually input environmental parameters and test the ML models in real-time.
+
+- **Adjust Parameters**: Sliders for temperature, humidity, wind speed, etc.
+- **Instant Predictions**: See risk scores for Flood, Fire, Earthquake, and Storm.
+- **Visual Feedback**: Color-coded risk indicators (Low/Moderate/High).
+
+### 🛡️ Sentry Monitoring
+Integrated full-stack monitoring for production reliability.
+
+- **Error Tracking**: Real-time alerts for backend and frontend crashes.
+- **Performance Monitoring**: Tracing for API latency and page load speeds.
+- **Session Replay**: Video-like reproduction of user errors.
+
+---
+
+## 📱 Screenshots
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/ayushap18/congenial-waddle/main/public/Gemini_Generated_Image_7c3uv87c3uv87c3u.png" width="45%" alt="Dashboard" />
+  <img src="https://raw.githubusercontent.com/ayushap18/congenial-waddle/main/public/Gemini_Generated_Image_7c3uv87c3uv87c3u.png" width="45%" alt="Mobile View" />
+</div>
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+<div align="center">
+
+**Built with ❤️ by Ayush**
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/ayush)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ayushap18)
+
+</div>
+
 
 ```
 
