@@ -2,30 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/health.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/weather.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/predict.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/alerts.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/earthquakes.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -33,14 +9,7 @@
       }
     }
   ],
-  "routes": [
-    { "src": "/api/health", "dest": "/api/health.py" },
-    { "src": "/api/weather/(.*)", "dest": "/api/weather.py" },
-    { "src": "/api/predict/(.*)", "dest": "/api/predict.py" },
-    { "src": "/api/alerts/(.*)", "dest": "/api/alerts.py" },
-    { "src": "/api/earthquakes", "dest": "/api/earthquakes.py" },
-    { "src": "/api/?$", "dest": "/api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index.py" }
   ]
 }
