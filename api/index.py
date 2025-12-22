@@ -20,8 +20,8 @@ USGS_EARTHQUAKE_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
 app = FastAPI(
     title="Alert Aid API",
-    description="Disaster prediction and alert management API",
-    version="2.0.0"
+    description="Disaster prediction and alert management API with AQI",
+    version="2.0.1"
 )
 
 # Enable CORS
