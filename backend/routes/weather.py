@@ -263,52 +263,47 @@ async def get_air_quality(lat: float, lon: float):
     Get Air Quality Index (AQI) data for specified coordinates
     Returns real data from OpenWeatherMap Air Pollution API or fallback
     """
+    aqi_categories = {
+        1: {"level": "Good", "color": "green", "description": "Air quality is satisfactory"},
+        2: {"level": "Fair", "color": "yellow", "description": "Air quality is acceptable"},
+        3: {"level": "Moderate", "color": "orange", "description": "Sensitive groups may experience health effects"},
+        4: {"level": "Poor", "color": "red", "description": "Health effects may be experienced by everyone"},
+        5: {"level": "Very Poor", "color": "purple", "description": "Health alert: everyone may experience serious effects"}
+    }
+    
     try:
         if WEATHER_API_KEY != "demo_key":
             # Use real OpenWeatherMap Air Pollution API
-            url = f"http://api.openweathermap.org/data/2.5/air_pollution"
-            params = {
-                "lat": lat,
-                "lon": lon,
-                "appid": WEATHER_API_KEY
-            }
+            url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}"
             
-            response = requests.get(url, params=params, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                aqi_data = data["list"][0]
-                
-                # Map AQI index to category
-                aqi_index = aqi_data["main"]["aqi"]
-                aqi_categories = {
-                    1: {"level": "Good", "color": "green", "description": "Air quality is satisfactory"},
-                    2: {"level": "Fair", "color": "yellow", "description": "Air quality is acceptable"},
-                    3: {"level": "Moderate", "color": "orange", "description": "Sensitive groups may experience health effects"},
-                    4: {"level": "Poor", "color": "red", "description": "Health effects may be experienced by everyone"},
-                    5: {"level": "Very Poor", "color": "purple", "description": "Health alert: everyone may experience serious effects"}
-                }
-                
-                category = aqi_categories.get(aqi_index, aqi_categories[3])
-                components = aqi_data["components"]
-                
-                return {
-                    "aqi": aqi_index,
-                    "level": category["level"],
-                    "color": category["color"],
-                    "description": category["description"],
-                    "components": {
-                        "pm2_5": round(components.get("pm2_5", 0), 2),  # Fine particles
-                        "pm10": round(components.get("pm10", 0), 2),    # Coarse particles
-                        "no2": round(components.get("no2", 0), 2),      # Nitrogen dioxide
-                        "o3": round(components.get("o3", 0), 2),        # Ozone
-                        "so2": round(components.get("so2", 0), 2),      # Sulfur dioxide
-                        "co": round(components.get("co", 0), 2)         # Carbon monoxide
-                    },
-                    "timestamp": datetime.now().isoformat(),
-                    "location": {"latitude": lat, "longitude": lon},
-                    "is_real": True
-                }
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        aqi_data = data["list"][0]
+                        
+                        # Map AQI index to category
+                        aqi_index = aqi_data["main"]["aqi"]
+                        category = aqi_categories.get(aqi_index, aqi_categories[3])
+                        components = aqi_data["components"]
+                        
+                        return {
+                            "aqi": aqi_index,
+                            "level": category["level"],
+                            "color": category["color"],
+                            "description": category["description"],
+                            "components": {
+                                "pm2_5": round(components.get("pm2_5", 0), 2),
+                                "pm10": round(components.get("pm10", 0), 2),
+                                "no2": round(components.get("no2", 0), 2),
+                                "o3": round(components.get("o3", 0), 2),
+                                "so2": round(components.get("so2", 0), 2),
+                                "co": round(components.get("co", 0), 2)
+                            },
+                            "timestamp": datetime.now().isoformat(),
+                            "location": {"latitude": lat, "longitude": lon},
+                            "is_real": True
+                        }
         
         # Fallback: Generate realistic AQI data
         return _generate_fallback_aqi(lat, lon)
