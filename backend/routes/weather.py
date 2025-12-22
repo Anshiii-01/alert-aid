@@ -131,48 +131,42 @@ async def get_weather_forecast(lat: float, lon: float, days: int = 7):
     try:
         if WEATHER_API_KEY and WEATHER_API_KEY != "demo_key":
             # Try One Call API 3.0 for 7-day forecast
-            url = ONECALL_API_URL
-            params = {
-                "lat": lat,
-                "lon": lon,
-                "appid": WEATHER_API_KEY,
-                "units": "metric",
-                "exclude": "current,minutely,hourly,alerts"  # Only get daily forecast
-            }
+            url = f"{ONECALL_API_URL}?lat={lat}&lon={lon}&appid={WEATHER_API_KEY}&units=metric&exclude=current,minutely,hourly,alerts"
             
             print(f"🌐 Requesting 7-day forecast from OpenWeatherMap: {lat}, {lon}")
-            response = requests.get(url, params=params, timeout=10)
             
-            if response.status_code == 200:
-                data = response.json()
-                forecast = []
-                
-                # Parse daily forecast (up to 7 days)
-                for day_data in data.get("daily", [])[:days]:
-                    forecast.append({
-                        "date": datetime.fromtimestamp(day_data["dt"]).strftime("%Y-%m-%d"),
-                        "day": datetime.fromtimestamp(day_data["dt"]).strftime("%a"),
-                        "temperature": round(day_data["temp"]["day"], 1),
-                        "temp_min": round(day_data["temp"]["min"], 1),
-                        "temp_max": round(day_data["temp"]["max"], 1),
-                        "feels_like": round(day_data["feels_like"]["day"], 1),
-                        "conditions": day_data["weather"][0]["description"].title(),
-                        "humidity": day_data["humidity"],
-                        "wind_speed": round(day_data["wind_speed"], 1),
-                        "pressure": day_data["pressure"],
-                        "precipitation": round(day_data.get("rain", 0) + day_data.get("snow", 0), 1),
-                        "uvi": round(day_data.get("uvi", 0), 1),
-                        "risk_score": _calculate_daily_risk(day_data)
-                    })
-                
-                print(f"✅ 7-day forecast retrieved successfully from OpenWeatherMap")
-                return {
-                    "forecast": forecast,
-                    "location": {"latitude": lat, "longitude": lon},
-                    "last_updated": datetime.now().isoformat(),
-                    "source": "OpenWeatherMap One Call API 3.0",
-                    "is_real": True
-                }
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        forecast = []
+                        
+                        # Parse daily forecast (up to 7 days)
+                        for day_data in data.get("daily", [])[:days]:
+                            forecast.append({
+                                "date": datetime.fromtimestamp(day_data["dt"]).strftime("%Y-%m-%d"),
+                                "day": datetime.fromtimestamp(day_data["dt"]).strftime("%a"),
+                                "temperature": round(day_data["temp"]["day"], 1),
+                                "temp_min": round(day_data["temp"]["min"], 1),
+                                "temp_max": round(day_data["temp"]["max"], 1),
+                                "feels_like": round(day_data["feels_like"]["day"], 1),
+                                "conditions": day_data["weather"][0]["description"].title(),
+                                "humidity": day_data["humidity"],
+                                "wind_speed": round(day_data["wind_speed"], 1),
+                                "pressure": day_data["pressure"],
+                                "precipitation": round(day_data.get("rain", 0) + day_data.get("snow", 0), 1),
+                                "uvi": round(day_data.get("uvi", 0), 1),
+                                "risk_score": _calculate_daily_risk(day_data)
+                            })
+                        
+                        print(f"✅ 7-day forecast retrieved successfully from OpenWeatherMap")
+                        return {
+                            "forecast": forecast,
+                            "location": {"latitude": lat, "longitude": lon},
+                            "last_updated": datetime.now().isoformat(),
+                            "source": "OpenWeatherMap One Call API 3.0",
+                            "is_real": True
+                        }
             else:
                 print(f"⚠️ One Call API failed with status {response.status_code}, using fallback")
                 raise requests.RequestException(f"API returned {response.status_code}")
