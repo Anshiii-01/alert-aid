@@ -23,6 +23,7 @@ import AirQualityWidget from './AirQualityWidget';
 import AlertNotificationSettings from '../Settings/AlertNotificationSettings';
 import { SystemDiagnostics } from '../Diagnostics/SystemDiagnostics';
 import { LoadingOverlay, SkeletonDashboard } from '../Layout/LoadingStates';
+import { RealTimeIndicator } from '../common/RealTimeIndicator';
 import { useAutoRefresh, useRefreshSettings } from '../../hooks/useAutoRefresh';
 import { useLiveDataExport } from '../../services/liveDataExport';
 import { RefreshCw, Clock } from 'lucide-react';
@@ -597,31 +598,21 @@ const Dashboard: React.FC = () => {
 
   return (
     <DashboardContainer>
-      {/* Live Data Status Bar */}
-      <LiveDataStatusBar>
-        <div className="status-section">
-          <div className={`refresh-indicator ${isRefreshing ? 'refreshing' : ''}`}>
-            <RefreshCw size={12} style={{ 
-              animation: isRefreshing ? 'spin 1s linear infinite' : 'none' 
-            }} />
-            <span>
-              {isRefreshing ? 'Refreshing...' : 
-               autoRefreshEnabled ? `Auto: ${refreshInterval}min` : 'Manual'}
-            </span>
-          </div>
-          
-          {autoRefreshEnabled && nextRefresh && (
-            <div className="next-refresh">
-              <Clock size={10} />
-              <span>Next: {formatTimeUntilNextRefresh(nextRefresh)}</span>
-            </div>
-          )}
-        </div>
-        
-        <div className="status-section">
-          <span>Updated: {lastRefresh.toLocaleTimeString()}</span>
-        </div>
-      </LiveDataStatusBar>
+      {/* Real-Time Status Indicator */}
+      <div style={{ 
+        position: 'fixed', 
+        top: '80px', 
+        right: '24px', 
+        zIndex: 100 
+      }}>
+        <RealTimeIndicator
+          lastUpdated={lastRefresh}
+          isLive={autoRefreshEnabled}
+          isConnected={!isRefreshing}
+          onRefresh={handleRefreshData}
+          autoRefreshInterval={refreshInterval * 60}
+        />
+      </div>
 
       <GeolocationManager />
       
