@@ -2,7 +2,7 @@
   "name": "alert-aid-enhanced",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://anshiii-01.github.io/alert-aid",
+  "homepage": ".",
   "author": "Ayush",
   "description": "Enhanced Disaster Management System with Real-time Alerts and ML Predictions",
   "dependencies": {
