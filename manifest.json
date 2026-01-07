@@ -1,0 +1,25 @@
+{
+  "short_name": "Alert Aid",
+  "name": "Alert Aid - Disaster Prediction Dashboard",
+  "icons": [
+    {
+      "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#1a1d29"
+}
