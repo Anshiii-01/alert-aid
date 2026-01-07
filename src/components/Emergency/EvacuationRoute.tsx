@@ -1,11 +1,13 @@
 /**
  * EvacuationRoute - Interactive Evacuation Route Planner
  * Shows safe routes, shelters, and navigation during emergencies
+ * Enhanced with color-coded routes, ETA display, and traffic overlay
  */
 
 import React, { useState, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { productionColors } from '../../styles/production-ui-system';
+import evacuationRouteService, { EvacuationRoute as RouteData } from '../../services/evacuationRouteService';
 
 interface Shelter {
   id: string;
@@ -187,22 +189,35 @@ const ShelterIcon = styled.text`
   pointer-events: none;
 `;
 
-const RoutePath = styled.path<{ $type: string }>`
+const RoutePath = styled.path<{ $type: string; $animated?: boolean }>`
   fill: none;
   stroke: ${props => {
     switch (props.$type) {
-      case 'clear': return '#22C55E';
-      case 'congested': return '#FBBF24';
-      case 'blocked': return '#EF4444';
+      case 'clear':
+      case 'safe': return '#22C55E';
+      case 'moderate': return '#FBBF24';
+      case 'congested':
+      case 'blocked':
+      case 'high': return '#EF4444';
       default: return '#22C55E';
     }
   }};
-  stroke-width: 4;
+  stroke-width: ${props => props.$type === 'safe' ? 5 : props.$type === 'moderate' ? 4 : 3};
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: ${props => props.$type === 'blocked' ? '10, 5' : 'none'};
-  ${props => props.$type === 'clear' && css`animation: ${flowAnimation} 1s linear infinite;`}
+  stroke-dasharray: ${props => props.$type === 'blocked' || props.$type === 'high' ? '10, 5' : 'none'};
+  ${props => (props.$animated || props.$type === 'safe' || props.$type === 'clear') && css`
+    stroke-dasharray: 20, 10;
+    animation: ${flowAnimation} 1.5s linear infinite;
+  `}
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  opacity: ${props => props.$type === 'high' ? 0.7 : props.$type === 'moderate' ? 0.9 : 1.0};
+  transition: all 0.3s ease;
+  
+  &:hover {
+    stroke-width: ${props => (props.$type === 'safe' ? 6 : props.$type === 'moderate' ? 5 : 4)};
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.5));
+  }
 `;
 
 const DangerZone = styled.circle`
@@ -435,6 +450,155 @@ const LegendMarker = styled.span<{ $color: string }>`
   background: ${props => props.$color};
 `;
 
+// Enhanced Route Card Components
+const RouteCard = styled.div<{ $dangerLevel: string; $recommended?: boolean }>`
+  background: ${props => props.$recommended 
+    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.05) 100%)'
+    : 'rgba(255, 255, 255, 0.03)'
+  };
+  border-left: 4px solid ${props => {
+    switch (props.$dangerLevel) {
+      case 'safe': return '#22C55E';
+      case 'moderate': return '#FBBF24';
+      case 'high': return '#EF4444';
+      default: return '#22C55E';
+    }
+  }};
+  border-right: 1px solid ${productionColors.border.secondary};
+  border-top: 1px solid ${productionColors.border.secondary};
+  border-bottom: 1px solid ${productionColors.border.secondary};
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  ${css`animation: ${slideIn} 0.3s ease-out;`}
+  animation-fill-mode: backwards;
+  
+  &:nth-child(1) { animation-delay: 0.1s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.3s; }
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+`;
+
+const RouteHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+`;
+
+const RouteInfo = styled.div`
+  flex: 1;
+`;
+
+const RouteName = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  color: ${productionColors.text.primary};
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const RouteETABadge = styled.div<{ $dangerLevel: string }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: ${props => {
+    switch (props.$dangerLevel) {
+      case 'safe': return 'rgba(34, 197, 94, 0.15)';
+      case 'moderate': return 'rgba(251, 191, 36, 0.15)';
+      case 'high': return 'rgba(239, 68, 68, 0.15)';
+      default: return 'rgba(34, 197, 94, 0.15)';
+    }
+  }};
+  border: 1px solid ${props => {
+    switch (props.$dangerLevel) {
+      case 'safe': return 'rgba(34, 197, 94, 0.4)';
+      case 'moderate': return 'rgba(251, 191, 36, 0.4)';
+      case 'high': return 'rgba(239, 68, 68, 0.4)';
+      default: return 'rgba(34, 197, 94, 0.4)';
+    }
+  }};
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: ${props => {
+    switch (props.$dangerLevel) {
+      case 'safe': return '#22C55E';
+      case 'moderate': return '#FBBF24';
+      case 'high': return '#EF4444';
+      default: return '#22C55E';
+    }
+  }};
+`;
+
+const RouteStats = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+`;
+
+const RouteStat = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: ${productionColors.text.secondary};
+`;
+
+const RouteWarnings = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+`;
+
+const WarningTag = styled.span`
+  padding: 3px 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  font-size: 10px;
+  color: #EF4444;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const TrafficIndicator = styled.span<{ $condition: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: ${props => {
+    switch (props.$condition) {
+      case 'clear': return 'rgba(34, 197, 94, 0.15)';
+      case 'moderate': return 'rgba(251, 191, 36, 0.15)';
+      case 'congested': return 'rgba(239, 68, 68, 0.15)';
+      default: return 'rgba(255, 255, 255, 0.05)';
+    }
+  }};
+  border-radius: 4px;
+  font-size: 10px;
+  color: ${props => {
+    switch (props.$condition) {
+      case 'clear': return '#22C55E';
+      case 'moderate': return '#FBBF24';
+      case 'congested': return '#EF4444';
+      default: return productionColors.text.secondary;
+    }
+  }};
+`;
+
 const EvacuationRoute: React.FC<EvacuationRouteProps> = ({
   userLocation = { lat: 28.6139, lng: 77.2090 },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -479,6 +643,15 @@ const EvacuationRoute: React.FC<EvacuationRouteProps> = ({
       facilities: ['Food', 'Water', 'Playground', 'Classrooms'],
     },
   ], []);
+
+  // Generate evacuation routes
+  const routes: RouteData[] = useMemo(() => {
+    const nearestShelter = shelters[0];
+    return evacuationRouteService.generateMockRoutes(
+      userLocation,
+      nearestShelter.coordinates
+    );
+  }, [userLocation, shelters]);
 
   const getShelterIcon = (type: string) => {
     switch (type) {
@@ -595,7 +768,58 @@ const EvacuationRoute: React.FC<EvacuationRouteProps> = ({
       </MapContainer>
 
       <InfoPanel>
+        {/* Enhanced Evacuation Routes Section */}
         <SectionTitle>
+          🛣️ Evacuation Routes
+        </SectionTitle>
+        <div>
+          {routes.map(route => (
+            <RouteCard 
+              key={route.id} 
+              $dangerLevel={route.dangerLevel}
+              $recommended={route.recommended}
+            >
+              <RouteHeader>
+                <RouteInfo>
+                  <RouteName>
+                    {route.recommended && '⭐'} {route.name}
+                    {route.recommended && <RecommendedBadge>Fastest</RecommendedBadge>}
+                  </RouteName>
+                </RouteInfo>
+                <RouteETABadge $dangerLevel={route.dangerLevel}>
+                  🕐 ETA {evacuationRouteService.calculateETA(route.duration)}
+                </RouteETABadge>
+              </RouteHeader>
+              
+              <RouteStats>
+                <RouteStat>
+                  📍 {evacuationRouteService.formatDistance(route.distance)}
+                </RouteStat>
+                <RouteStat>
+                  ⏱️ {evacuationRouteService.formatDuration(route.duration)}
+                </RouteStat>
+                <RouteStat>
+                  <TrafficIndicator $condition={route.trafficCondition}>
+                    {evacuationRouteService.getTrafficIcon(route.trafficCondition)} 
+                    {route.trafficCondition}
+                  </TrafficIndicator>
+                </RouteStat>
+              </RouteStats>
+              
+              {route.warnings.length > 0 && (
+                <RouteWarnings>
+                  {route.warnings.map((warning, idx) => (
+                    <WarningTag key={idx}>
+                      ⚠️ {warning}
+                    </WarningTag>
+                  ))}
+                </RouteWarnings>
+              )}
+            </RouteCard>
+          ))}
+        </div>
+        
+        <SectionTitle style={{ marginTop: '24px' }}>
           🏠 Nearby Shelters
         </SectionTitle>
         <ShelterList>

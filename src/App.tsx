@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
+import { ThemeProvider as StyledThemeProvider } from 'styled-components';
 import styled from 'styled-components';
 import { theme } from './styles/theme';
 import { GlobalStyles } from './styles/GlobalStyles';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { LocationProvider, useLocation } from './contexts/LocationContext';
+import { ThemeProvider, useTheme as useThemeContext } from './contexts/ThemeContext';
+import { lightTheme, darkTheme } from './styles/themeConfig';
 import { GeolocationProvider } from './components/Location/GeolocationManager';
 import { ToastProvider } from './components/Notifications/ToastSystem';
 import Starfield from './components/Starfield/Starfield';
@@ -66,11 +68,15 @@ const cleanupInvalidCaches = () => {
   }
 };
 
-// Main App Content Component
+// Main App Content Component with theme bridge
 const AppContent: React.FC = () => {
   const { showLocationModal, setLocation } = useLocation();
+  const { theme: themeMode } = useThemeContext();
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
+  
+  // Get the appropriate theme based on mode
+  const currentTheme = themeMode === 'light' ? lightTheme : darkTheme;
   
   // Derive current page from the URL path
   const currentPage = React.useMemo(() => {
@@ -85,7 +91,7 @@ const AppContent: React.FC = () => {
   }, [navigate]);
   
   return (
-    <>
+    <StyledThemeProvider theme={currentTheme}>
       <SkipToContent href="#main-content">
         Skip to main content
       </SkipToContent>
@@ -114,7 +120,7 @@ const AppContent: React.FC = () => {
         onLocationGranted={setLocation}
         onClose={() => {}} // No close - modal is required
       />
-    </>
+    </StyledThemeProvider>
   );
 };
 
@@ -126,7 +132,7 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <GlobalStyles theme={theme} />
       <ToastProvider>
         <NotificationProvider>

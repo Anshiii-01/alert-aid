@@ -19,6 +19,7 @@ import {
   Waves
 } from 'lucide-react';
 import ManualLocationSearch from '../Location/ManualLocationSearch';
+import ThemeToggle from '../Settings/ThemeToggle';
 import { 
   productionColors, 
   productionAnimations
@@ -433,6 +434,9 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
       >
         {isMobileMenuOpen ? <X /> : <Menu />}
       </MobileMenuButton>
+      
+      <ThemeToggle />
+      
       <StarToggleButton
         title="Toggle starfield background"
         aria-label="Toggle starfield background"

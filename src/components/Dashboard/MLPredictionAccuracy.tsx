@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Target, Activity, Brain, Cpu, TrendingUp, Zap } from 'lucide-react';
 import { Card, Text, Flex } from '../../styles/components';
+import { colorblindSafePalette, getAccessibleChartColor } from '../../styles/colorblindAccessibility';
 
 // Enhanced animations
 const pulseGlow = keyframes`
@@ -120,15 +121,15 @@ const ModelHeader = styled.div`
 `;
 
 const ModelName = styled.span`
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
 
 const ModelAccuracy = styled.span<{ color: string }>`
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: ${({ color }) => color};
 `;
@@ -165,23 +166,24 @@ const StatItem = styled.div`
 `;
 
 const StatValue = styled.span`
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: #fff;
 `;
 
 const StatLabel = styled.span`
-  font-size: 9px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
 `;
 
-// Model data - stable values
+// Model data - colorblind-safe colors and increased accessibility
 const MODELS = [
-  { name: 'LSTM', accuracy: 94.2, color: '#22c55e' },
-  { name: 'XGBoost', accuracy: 91.5, color: '#3b82f6' },
-  { name: 'GNN', accuracy: 88.7, color: '#8b5cf6' },
-  { name: 'Anomaly', accuracy: 89.8, color: '#f59e0b' }
+  { name: 'LSTM', accuracy: 94.2, color: getAccessibleChartColor(2), pattern: 'stripes' }, // Teal
+  { name: 'XGBoost', accuracy: 91.5, color: getAccessibleChartColor(0), pattern: 'dots' }, // Blue
+  { name: 'GNN', accuracy: 88.7, color: getAccessibleChartColor(5), pattern: 'horizontal' }, // Purple
+  { name: 'Anomaly', accuracy: 89.8, color: getAccessibleChartColor(1), pattern: 'crosshatch' } // Orange
 ];
 
 const MLPredictionAccuracy: React.FC = () => {

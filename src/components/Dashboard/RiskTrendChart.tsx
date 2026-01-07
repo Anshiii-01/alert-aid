@@ -6,6 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { productionColors } from '../../styles/production-ui-system';
+import { colorblindSafePalette, getAccessibleChartColor } from '../../styles/colorblindAccessibility';
 
 interface DataPoint {
   timestamp: Date;
@@ -109,40 +110,40 @@ const GridLine = styled.line`
 const ThresholdLine = styled.line<{ $level: string }>`
   stroke: ${props => {
     switch (props.$level) {
-      case 'critical': return '#EF4444';
-      case 'high': return '#F97316';
-      case 'moderate': return '#FBBF24';
-      default: return '#22C55E';
+      case 'critical': return getAccessibleChartColor(3); // Magenta
+      case 'high': return getAccessibleChartColor(1); // Orange
+      case 'moderate': return getAccessibleChartColor(4); // Yellow
+      default: return getAccessibleChartColor(2); // Teal
     }
   }};
-  stroke-width: 1;
+  stroke-width: 2;
   stroke-dasharray: 4, 4;
-  opacity: 0.5;
+  opacity: 0.9;
 `;
 
 const ThresholdLabel = styled.text<{ $level: string }>`
   fill: ${props => {
     switch (props.$level) {
-      case 'critical': return '#EF4444';
-      case 'high': return '#F97316';
-      case 'moderate': return '#FBBF24';
-      default: return '#22C55E';
+      case 'critical': return getAccessibleChartColor(3);
+      case 'high': return getAccessibleChartColor(1);
+      case 'moderate': return getAccessibleChartColor(4);
+      default: return getAccessibleChartColor(2);
     }
   }};
-  font-size: 9px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
 `;
 
 const DataPath = styled.path<{ $isPrediction?: boolean }>`
   fill: none;
-  stroke: ${props => props.$isPrediction ? '#8B5CF6' : productionColors.brand.primary};
-  stroke-width: 2.5;
+  stroke: ${props => props.$isPrediction ? getAccessibleChartColor(5) : getAccessibleChartColor(0)};
+  stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: ${props => props.$isPrediction ? '6, 4' : 'none'};
+  stroke-dasharray: ${props => props.$isPrediction ? '8, 4' : 'none'};
   ${css`animation: ${drawLine} 1.5s ease-out forwards;`}
   stroke-dashoffset: 0;
-  filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.3));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 `;
 
 const AreaGradient = styled.path<{ $isPrediction?: boolean }>`
@@ -151,10 +152,11 @@ const AreaGradient = styled.path<{ $isPrediction?: boolean }>`
 `;
 
 const DataDot = styled.circle<{ $isLast?: boolean; $isPrediction?: boolean }>`
-  fill: ${props => props.$isPrediction ? '#8B5CF6' : productionColors.brand.primary};
+  fill: ${props => props.$isPrediction ? getAccessibleChartColor(5) : getAccessibleChartColor(0)};
   stroke: #fff;
   stroke-width: 2;
   ${props => props.$isLast && css`animation: ${pulseDot} 2s ease-in-out infinite;`}
+  r: 5;
 `;
 
 const TooltipGroup = styled.g`
@@ -170,7 +172,8 @@ const TooltipLine = styled.line`
 
 const AxisLabel = styled.text`
   fill: ${productionColors.text.tertiary};
-  font-size: 10px;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const Legend = styled.div`
@@ -186,7 +189,8 @@ const LegendItem = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 500;
   color: ${productionColors.text.secondary};
 `;
 
@@ -223,7 +227,8 @@ const StatValue = styled.div<{ $color?: string }>`
 `;
 
 const StatLabel = styled.div`
-  font-size: 10px;
+  font-size: 14px;
+  font-weight: 500;
   color: ${productionColors.text.tertiary};
   text-transform: uppercase;
   margin-top: 4px;

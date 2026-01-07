@@ -10,7 +10,8 @@ import RiskTrendChart from '../components/Dashboard/RiskTrendChart';
 import EmergencySOS from '../components/Emergency/EmergencySOS';
 import EvacuationRoute from '../components/Emergency/EvacuationRoute';
 import { useLocation } from '../contexts/LocationContext';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { getAccessibleChartColor } from '../styles/colorblindAccessibility';
 
 // Enhanced Animations
 const fadeInUp = keyframes`
@@ -565,22 +566,23 @@ const PredictionsPage: React.FC = () => {
               <ChartContainer>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={predictionHistory}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 11 }} />
-                    <YAxis tick={{ fill: '#94A3B8', fontSize: 11 }} domain={[0, 100]} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="name" tick={{ fill: '#94A3B8', fontSize: 14 }} />
+                    <YAxis tick={{ fill: '#94A3B8', fontSize: 14 }} domain={[0, 100]} />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'rgba(15, 23, 42, 0.95)', 
                         border: '1px solid rgba(255,255,255,0.1)',
                         borderRadius: '8px',
-                        color: '#fff'
+                        color: '#fff',
+                        fontSize: '14px'
                       }}
                     />
-                    <Legend />
-                    <Line type="monotone" dataKey="lstm" name="LSTM" stroke="#F472B6" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="xgboost" name="XGBoost" stroke="#38BDF8" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="gnn" name="GNN" stroke="#34D399" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="ensemble" name="Ensemble" stroke="#A78BFA" strokeWidth={3} dot={false} />
+                    <Legend wrapperStyle={{ fontSize: '14px' }} />
+                    <Line type="monotone" dataKey="lstm" name="LSTM (■)" stroke={getAccessibleChartColor(2)} strokeWidth={3} strokeDasharray="5 0" dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="xgboost" name="XGBoost (●)" stroke={getAccessibleChartColor(0)} strokeWidth={3} strokeDasharray="8 4" dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="gnn" name="GNN (▲)" stroke={getAccessibleChartColor(5)} strokeWidth={3} strokeDasharray="2 2" dot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="ensemble" name="Ensemble (★)" stroke={getAccessibleChartColor(3)} strokeWidth={4} dot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartContainer>

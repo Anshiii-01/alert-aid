@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import { AlertTriangle, Clock, RefreshCw, ExternalLink } from 'lucide-react';
 import { Card, Heading, Text, StatusIndicator, Flex, Button } from '../../styles/components';
@@ -6,6 +6,7 @@ import { useCurrentAlerts } from '../../hooks/useDashboard';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { enhancedSpacing, enhancedShadows } from '../../styles/enhanced-design-system';
 import { ActiveAlert } from '../../services/apiService';
+import alertNotificationService, { AlertLevel } from '../../services/alertNotificationService';
 
 const AlertsContainer = styled(Card)`
   max-height: 320px;
@@ -134,6 +135,7 @@ interface CurrentAlertsProps {
 const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
   const { data: alertsData, loading, error, refetch } = useCurrentAlerts();
   const { addNotification } = useNotifications();
+  const previousAlertsRef = useRef<Set<string>>(new Set());
 
   // alertsData is already an array of alerts from useDashboard
   const displayAlerts: ActiveAlert[] = useMemo(() => {
@@ -145,29 +147,65 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
     });
   }, [alertsData]);
 
-  // Convert alerts to notifications
+  // Map severity to AlertLevel
+  const mapSeverityToAlertLevel = (severity: string): AlertLevel => {
+    switch (severity.toLowerCase()) {
+      case 'critical':
+        return 'CRITICAL';
+      case 'high':
+        return 'HIGH';
+      case 'medium':
+      case 'moderate':
+        return 'MEDIUM';
+      default:
+        return 'LOW';
+    }
+  };
+
+  // Trigger alert notifications for new critical/high alerts
   useEffect(() => {
     if (displayAlerts && displayAlerts.length > 0) {
       displayAlerts.forEach(alert => {
-        if (alert.severity === 'Critical' || alert.severity === 'High') {
-          const areaText = alert.areas && alert.areas.length > 0 ? alert.areas.join(', ') : 'your area';
-          addNotification({
-            type: alert.severity === 'Critical' ? 'error' : 'warning',
-            title: `${alert.severity} Alert`,
-            message: `${alert.description} in ${areaText}`,
-            priority: alert.severity === 'Critical' ? 'critical' : 'high',
-            source: 'Emergency Alert System',
-            actions: [
-              {
-                label: 'View Details',
-                action: () => console.log('View alert details:', alert.id)
-              },
-              {
-                label: 'Mark Safe',
-                action: () => console.log('Mark location safe:', areaText)
-              }
-            ]
-          });
+        // Check if this is a new alert we haven't notified about
+        const alertId = alert.id || `${alert.event}-${alert.start}`;
+        
+        if (!previousAlertsRef.current.has(alertId)) {
+          // This is a new alert - trigger notification
+          previousAlertsRef.current.add(alertId);
+          
+          // Trigger sound and haptic feedback for critical/high alerts
+          if (alert.severity === 'Critical' || alert.severity === 'High') {
+            const level = mapSeverityToAlertLevel(alert.severity);
+            const areaText = alert.areas && alert.areas.length > 0 ? alert.areas.join(', ') : 'your area';
+            
+            alertNotificationService.triggerAlert(
+              level,
+              `${alert.severity} Alert: ${alert.event}`,
+              `${alert.description} in ${areaText}`
+            );
+          }
+          
+          // Add to notification center
+          if (alert.severity === 'Critical' || alert.severity === 'High') {
+            const areaText = alert.areas && alert.areas.length > 0 ? alert.areas.join(', ') : 'your area';
+            addNotification({
+              type: alert.severity === 'Critical' ? 'error' : 'warning',
+              title: `${alert.severity} Alert`,
+              message: `${alert.description} in ${areaText}`,
+              priority: alert.severity === 'Critical' ? 'critical' : 'high',
+              source: 'Emergency Alert System',
+              actions: [
+                {
+                  label: 'View Details',
+                  action: () => console.log('View alert details:', alert.id)
+                },
+                {
+                  label: 'Mark Safe',
+                  action: () => console.log('Mark location safe:', areaText)
+                }
+              ]
+            });
+          }
         }
       });
     }

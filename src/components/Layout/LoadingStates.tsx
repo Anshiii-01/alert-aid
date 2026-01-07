@@ -1,5 +1,14 @@
 import React from 'react';
 import styled, { keyframes, css } from 'styled-components';
+import { 
+  SkeletonDashboardCard, 
+  SkeletonAlertCard, 
+  SkeletonMap, 
+  SkeletonList,
+  SkeletonChart,
+  SkeletonText as SkeletonTextBase,
+  SkeletonCard as SkeletonCardBase
+} from '../../styles/SkeletonLoader';
 
 // Enhanced Skeleton Loading Animations
 const shimmer = keyframes`
@@ -200,33 +209,74 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   </OverlayContainer>
 );
 
-// Skeleton Dashboard Layout
+// Skeleton Dashboard Layout - Enhanced
+const DashboardGrid = styled.div`
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: 2fr 1fr;
+  }
+`;
+
+const CardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+`;
+
 export const SkeletonDashboard: React.FC = () => (
-  <div style={{ padding: '1.5rem', display: 'grid', gap: '1.5rem' }}>
+  <div style={{ padding: '24px' }}>
     {/* Header skeleton */}
-    <div>
-      <SkeletonText width="60%" height="2rem" />
-      <SkeletonText width="40%" />
+    <div style={{ marginBottom: '32px' }}>
+      <SkeletonTextBase $width="40%" $height="36px" />
+      <SkeletonTextBase $width="60%" $height="16px" />
     </div>
     
     {/* Cards skeleton */}
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-      <SkeletonCard />
-      <SkeletonCard />
-      <SkeletonCard />
-    </div>
+    <CardsGrid>
+      <SkeletonDashboardCard />
+      <SkeletonDashboardCard />
+      <SkeletonDashboardCard />
+    </CardsGrid>
     
-    {/* Chart skeleton */}
-    <SkeletonChart />
-    
-    {/* List skeleton */}
-    <div>
-      <SkeletonText width="30%" height="1.5rem" />
-      <div style={{ marginTop: '1rem' }}>
-        <SkeletonText />
-        <SkeletonText />
-        <SkeletonText width="80%" />
+    {/* Main content grid */}
+    <DashboardGrid>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <SkeletonChart $height="400px" />
+        <SkeletonMap height="300px" />
       </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <SkeletonList items={5} />
+      </div>
+    </DashboardGrid>
+  </div>
+);
+
+// Skeleton Alerts Page
+export const SkeletonAlertsPage: React.FC = () => (
+  <div style={{ padding: '24px' }}>
+    <div style={{ marginBottom: '24px' }}>
+      <SkeletonTextBase $width="30%" $height="32px" />
+      <SkeletonTextBase $width="50%" $height="16px" />
+    </div>
+    <SkeletonList items={6} />
+  </div>
+);
+
+// Skeleton Map Page
+export const SkeletonMapPage: React.FC = () => (
+  <div style={{ padding: '24px' }}>
+    <div style={{ marginBottom: '16px' }}>
+      <SkeletonTextBase $width="40%" $height="32px" />
+    </div>
+    <SkeletonMap height="600px" />
+    <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+      <SkeletonCardBase $height="120px" />
+      <SkeletonCardBase $height="120px" />
+      <SkeletonCardBase $height="120px" />
     </div>
   </div>
 );

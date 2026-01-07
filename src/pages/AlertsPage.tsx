@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import styled from 'styled-components';
 import CurrentAlerts from '../components/Dashboard/CurrentAlerts';
 import { productionColors, productionCard } from '../styles/production-ui-system';
+import { SkeletonAlertsPage } from '../components/Layout/LoadingStates';
 
 const AlertsContainer = styled.div`
   min-height: 100vh;
@@ -56,7 +57,9 @@ const AlertsPage: React.FC = () => {
 
       <AlertsContent>
         <AlertCard>
-          <CurrentAlerts />
+          <Suspense fallback={<SkeletonAlertsPage />}>
+            <CurrentAlerts />
+          </Suspense>
         </AlertCard>
       </AlertsContent>
     </AlertsContainer>

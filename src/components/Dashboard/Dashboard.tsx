@@ -20,6 +20,7 @@ import ResourceManagementDashboard from '../Resources/ResourceManagementDashboar
 import CommunicationHub from '../Communication/CommunicationHub';
 import EnhancedWeatherWidget from '../Dashboard/EnhancedWeatherWidget';
 import AirQualityWidget from './AirQualityWidget';
+import AlertNotificationSettings from '../Settings/AlertNotificationSettings';
 import { SystemDiagnostics } from '../Diagnostics/SystemDiagnostics';
 import { LoadingOverlay, SkeletonDashboard } from '../Layout/LoadingStates';
 import { useAutoRefresh, useRefreshSettings } from '../../hooks/useAutoRefresh';
@@ -683,6 +684,13 @@ const Dashboard: React.FC = () => {
                   source={forecastSource}
                 />
               )}
+            </ErrorBoundary>
+          </DashboardCard>
+          
+          {/* Alert Notification Settings */}
+          <DashboardCard animationDelay={300}>
+            <ErrorBoundary componentName="Alert Notification Settings">
+              <AlertNotificationSettings />
             </ErrorBoundary>
           </DashboardCard>
         </RightSidebar>
