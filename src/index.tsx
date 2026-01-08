@@ -4,20 +4,14 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import logger from './utils/logger';
+import { registerServiceWorker } from './serviceWorkerRegistration';
 
 // Log app startup
 logger.log('🌟 Alert Aid v2.1.0 - Optimized Build');
 logger.log('📅 Build Date:', new Date().toLocaleString());
 
-// Unregister any old service workers for clean slate
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for(let registration of registrations) {
-      registration.unregister();
-      logger.log('🧹 Unregistered old service worker');
-    }
-  });
-}
+// Register service worker for PWA support
+registerServiceWorker();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
