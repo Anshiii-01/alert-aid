@@ -1,25 +1,48 @@
 {
   "short_name": "Alert Aid",
-  "name": "Alert Aid - Disaster Prediction Dashboard",
+  "name": "Alert Aid - Disaster Management System",
+  "description": "Real-time disaster monitoring and alert system with ML predictions",
   "icons": [
     {
       "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
       "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#1a1d29"
+  "theme_color": "#EF4444",
+  "background_color": "#0F172A",
+  "orientation": "portrait-primary",
+  "categories": ["weather", "utilities", "news"],
+  "shortcuts": [
+    {
+      "name": "View Alerts",
+      "short_name": "Alerts",
+      "description": "View active disaster alerts",
+      "url": "/alerts",
+      "icons": [{ "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View disaster dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
 }
