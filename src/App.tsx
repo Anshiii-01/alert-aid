@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme as useThemeContext } from './contexts/ThemeCont
 import { lightTheme, darkTheme } from './styles/themeConfig';
 import { GeolocationProvider } from './components/Location/GeolocationManager';
 import { ToastProvider } from './components/Notifications/ToastSystem';
+import './i18n'; // Initialize i18n
 import Starfield from './components/Starfield/Starfield';
 import { NavigationBar } from './components/navigation/NavigationBar';
 import Dashboard from './components/Dashboard/Dashboard';

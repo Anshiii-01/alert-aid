@@ -1,0 +1,105 @@
+{
+  "nav": {
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "predictions": "पूर्वानुमान",
+    "alerts": "अलर्ट",
+    "evacuation": "निकासी",
+    "forecast": "बाढ़ पूर्वानुमान"
+  },
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "refresh": "रीफ्रेश करें",
+    "live": "लाइव",
+    "offline": "ऑफलाइन",
+    "update": "अपडेट",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "search": "खोजें",
+    "location": "स्थान"
+  },
+  "dashboard": {
+    "title": "आपातकालीन डैशबोर्ड",
+    "currentAlerts": "वर्तमान अलर्ट",
+    "weatherForecast": "मौसम पूर्वानुमान",
+    "mlPrediction": "ML पूर्वानुमान सटीकता",
+    "riskLevel": "जोखिम स्तर",
+    "critical": "गंभीर",
+    "high": "उच्च",
+    "moderate": "मध्यम",
+    "low": "कम",
+    "noAlerts": "कोई सक्रिय अलर्ट नहीं"
+  },
+  "alerts": {
+    "title": "सक्रिय अलर्ट",
+    "description": "अपने स्थान के लिए सभी सक्रिय मौसम सलाह, चेतावनी और आपातकालीन अलर्ट की निगरानी करें।",
+    "flood": "बाढ़ चेतावनी",
+    "storm": "तूफान अलर्ट",
+    "earthquake": "भूकंप",
+    "wildfire": "जंगल की आग का खतरा",
+    "tsunami": "सुनामी चेतावनी",
+    "hurricane": "तूफान",
+    "tornado": "बवंडर",
+    "severity": "गंभीरता",
+    "issued": "जारी",
+    "expires": "समाप्त"
+  },
+  "predictions": {
+    "title": "AI और ML पूर्वानुमान",
+    "description": "LSTM, XGBoost, GNN ensemble मॉडल का उपयोग करके उन्नत AI-संचालित आपदा पूर्वानुमान।",
+    "lstm": "LSTM न्यूरल नेटवर्क",
+    "xgboost": "XGBoost क्लासिफायर",
+    "gnn": "ग्राफ न्यूरल नेटवर्क",
+    "ensemble": "एन्सेम्बल संयुक्त",
+    "accuracy": "सटीकता",
+    "probability": "संभावना",
+    "recentPredictions": "हाल के पूर्वानुमान"
+  },
+  "evacuation": {
+    "title": "निकासी मार्ग",
+    "findRoute": "सुरक्षित मार्ग खोजें",
+    "destination": "गंतव्य",
+    "distance": "दूरी",
+    "eta": "अनुमानित समय",
+    "safest": "सबसे सुरक्षित मार्ग",
+    "fastest": "सबसे तेज मार्ग",
+    "traffic": "यातायात",
+    "roadClosure": "सड़क बंद",
+    "dangerZone": "खतरे का क्षेत्र"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "language": "भाषा",
+    "theme": "थीम",
+    "notifications": "सूचनाएं",
+    "soundAlerts": "ध्वनि अलर्ट",
+    "hapticFeedback": "हैप्टिक फीडबैक",
+    "autoRefresh": "ऑटो रीफ्रेश",
+    "units": "इकाइयाँ",
+    "metric": "मीट्रिक",
+    "imperial": "इम्पीरियल"
+  },
+  "weather": {
+    "temperature": "तापमान",
+    "humidity": "आर्द्रता",
+    "pressure": "दबाव",
+    "windSpeed": "हवा की गति",
+    "visibility": "दृश्यता",
+    "precipitation": "वर्षा",
+    "uvIndex": "UV सूचकांक",
+    "airQuality": "वायु गुणवत्ता",
+    "sunrise": "सूर्योदय",
+    "sunset": "सूर्यास्त"
+  },
+  "emergency": {
+    "sos": "आपातकालीन SOS",
+    "call": "आपातकालीन कॉल",
+    "message": "आपातकालीन संदेश भेजें",
+    "location": "स्थान साझा करें",
+    "contacts": "आपातकालीन संपर्क",
+    "shelters": "निकटतम आश्रय",
+    "hospitals": "निकटतम अस्पताल"
+  }
+}

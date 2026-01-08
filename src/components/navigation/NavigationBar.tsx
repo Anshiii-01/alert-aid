@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import ManualLocationSearch from '../Location/ManualLocationSearch';
 import ThemeToggle from '../Settings/ThemeToggle';
+import LanguageSelector from '../Settings/LanguageSelector';
 import { 
   productionColors, 
   productionAnimations
@@ -435,6 +436,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
         {isMobileMenuOpen ? <X /> : <Menu />}
       </MobileMenuButton>
       
+      <LanguageSelector />
       <ThemeToggle />
       
       <StarToggleButton

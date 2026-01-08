@@ -1,0 +1,105 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "predictions": "Predictions",
+    "alerts": "Alerts",
+    "evacuation": "Evacuation",
+    "forecast": "Flood Forecast"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "refresh": "Refresh",
+    "live": "LIVE",
+    "offline": "OFFLINE",
+    "update": "Update",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "search": "Search",
+    "location": "Location"
+  },
+  "dashboard": {
+    "title": "Emergency Dashboard",
+    "currentAlerts": "Current Alerts",
+    "weatherForecast": "Weather Forecast",
+    "mlPrediction": "ML Prediction Accuracy",
+    "riskLevel": "Risk Level",
+    "critical": "Critical",
+    "high": "High",
+    "moderate": "Moderate",
+    "low": "Low",
+    "noAlerts": "No active alerts"
+  },
+  "alerts": {
+    "title": "Active Alerts",
+    "description": "Monitor all active weather advisories, warnings, and emergency alerts for your location.",
+    "flood": "Flood Warning",
+    "storm": "Storm Alert",
+    "earthquake": "Earthquake",
+    "wildfire": "Wildfire Risk",
+    "tsunami": "Tsunami Warning",
+    "hurricane": "Hurricane",
+    "tornado": "Tornado",
+    "severity": "Severity",
+    "issued": "Issued",
+    "expires": "Expires"
+  },
+  "predictions": {
+    "title": "AI & ML Predictions",
+    "description": "Advanced AI-powered disaster predictions using LSTM, XGBoost, GNN ensemble models.",
+    "lstm": "LSTM Neural Network",
+    "xgboost": "XGBoost Classifier",
+    "gnn": "Graph Neural Network",
+    "ensemble": "Ensemble Combined",
+    "accuracy": "Accuracy",
+    "probability": "Probability",
+    "recentPredictions": "Recent Predictions"
+  },
+  "evacuation": {
+    "title": "Evacuation Routes",
+    "findRoute": "Find Safe Route",
+    "destination": "Destination",
+    "distance": "Distance",
+    "eta": "ETA",
+    "safest": "Safest Route",
+    "fastest": "Fastest Route",
+    "traffic": "Traffic",
+    "roadClosure": "Road Closure",
+    "dangerZone": "Danger Zone"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "soundAlerts": "Sound Alerts",
+    "hapticFeedback": "Haptic Feedback",
+    "autoRefresh": "Auto Refresh",
+    "units": "Units",
+    "metric": "Metric",
+    "imperial": "Imperial"
+  },
+  "weather": {
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "pressure": "Pressure",
+    "windSpeed": "Wind Speed",
+    "visibility": "Visibility",
+    "precipitation": "Precipitation",
+    "uvIndex": "UV Index",
+    "airQuality": "Air Quality",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset"
+  },
+  "emergency": {
+    "sos": "Emergency SOS",
+    "call": "Call Emergency",
+    "message": "Send Emergency Message",
+    "location": "Share Location",
+    "contacts": "Emergency Contacts",
+    "shelters": "Nearby Shelters",
+    "hospitals": "Nearby Hospitals"
+  }
+}

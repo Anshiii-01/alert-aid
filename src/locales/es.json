@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "predictions": "Predicciones",
+    "alerts": "Alertas",
+    "evacuation": "Evacuación",
+    "forecast": "Pronóstico de Inundaciones"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "refresh": "Actualizar",
+    "live": "EN VIVO",
+    "offline": "DESCONECTADO",
+    "update": "Actualizar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "search": "Buscar",
+    "location": "Ubicación"
+  },
+  "dashboard": {
+    "title": "Panel de Emergencias",
+    "currentAlerts": "Alertas Actuales",
+    "weatherForecast": "Pronóstico del Tiempo",
+    "mlPrediction": "Precisión de Predicción ML",
+    "riskLevel": "Nivel de Riesgo",
+    "critical": "Crítico",
+    "high": "Alto",
+    "moderate": "Moderado",
+    "low": "Bajo",
+    "noAlerts": "Sin alertas activas"
+  },
+  "settings": {
+    "language": "Idioma",
+    "theme": "Tema"
+  }
+}
