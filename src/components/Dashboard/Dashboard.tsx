@@ -316,16 +316,15 @@ const ResourcesSection = styled.section`
 
 const CommunicationSection = styled.section`
   grid-area: communication;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: ${spacing.lg};
   
   /* Mobile-specific styling */
   @media (max-width: ${breakpoints.mobile}) {
     padding: 0;
     margin: 0;
   }
-`;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: ${spacing.lg};
 `;
 
 const WeatherSection = styled.section`

@@ -1,9 +1,9 @@
 /**
  * EmergencySOS - One-Click Emergency Alert System
- * Enhanced with loading & error state handling (Issue #42)
+ * Enhanced with loading indicator for emergency actions (Issue #71)
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { productionColors } from '../../styles/production-ui-system';
 import alertNotificationService from '../../services/alertNotificationService';
@@ -54,7 +54,11 @@ const spin = keyframes`
 /* ===================== STYLES ===================== */
 
 const Container = styled.div`
-  background: linear-gradient(135deg, rgba(239,68,68,.1), ${productionColors.background.secondary});
+  background: linear-gradient(
+    135deg,
+    rgba(239,68,68,.1),
+    ${productionColors.background.secondary}
+  );
   border: 2px solid rgba(239,68,68,.3);
   border-radius: 20px;
   padding: 24px;
@@ -86,12 +90,17 @@ const SOSButton = styled.button`
   height: 160px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(145deg, ${productionColors.brand.primary}, #dc2626);
+  background: linear-gradient(
+    145deg,
+    ${productionColors.brand.primary},
+    #dc2626
+  );
   color: #fff;
   font-size: 28px;
   font-weight: 800;
   cursor: pointer;
   animation: ${pulse} 2s infinite;
+  transition: all 0.2s ease;
 
   &:disabled {
     opacity: 0.6;
@@ -115,8 +124,8 @@ const ErrorText = styled.p`
 `;
 
 const Spinner = styled.div`
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 2px solid rgba(255,255,255,.4);
   border-top-color: #fff;
   border-radius: 50%;
@@ -211,7 +220,7 @@ const EmergencySOS: React.FC<EmergencySOSProps> = ({
       </ButtonWrapper>
 
       <InstructionText>
-        {loading && 'Sending emergency alert…'}
+        {loading && 'Processing emergency alert…'}
         {!loading && success && 'Emergency alert sent successfully!'}
         {!loading && !success && !error && 'Tap SOS to send an emergency alert'}
       </InstructionText>

@@ -1045,7 +1045,7 @@ class DataSynchronizationService {
     }
 
     if (filters?.since) {
-      events = events.filter((e) => e.timestamp >= filters.since);
+      events = events.filter((e) => e.timestamp >= filters.since!);
     }
 
     return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, limit);

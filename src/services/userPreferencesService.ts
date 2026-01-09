@@ -497,7 +497,7 @@ class UserPreferencesService {
 
     // Track changes
     for (const [key, newValue] of Object.entries(updates)) {
-      const oldValue = (categoryPrefs as Record<string, unknown>)[key];
+      const oldValue = (categoryPrefs as any)[key];
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         this.recordChange(userId, category, key, oldValue, newValue);
       }
@@ -523,7 +523,7 @@ class UserPreferencesService {
     key: P,
     value: UserPreferences[K][P]
   ): UserPreferences {
-    return this.updatePreferences(userId, category, { [key]: value } as Partial<UserPreferences[K]>);
+    return this.updatePreferences(userId, category, { [key]: value } as any);
   }
 
   /**
@@ -535,7 +535,7 @@ class UserPreferencesService {
   ): UserPreferences {
     const prefs = this.getPreferences(userId);
     const defaultCategory = DEFAULT_PREFERENCES[category];
-    (prefs as Record<string, unknown>)[category] = JSON.parse(JSON.stringify(defaultCategory));
+    (prefs as any)[category] = JSON.parse(JSON.stringify(defaultCategory));
     prefs.updatedAt = new Date();
     this.preferences.set(userId, prefs);
     this.notifyListeners(userId, prefs);
@@ -812,9 +812,9 @@ class UserPreferencesService {
   public validatePreferences(prefs: Partial<UserPreferences>): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Validate general
-    if (prefs.general) {
-      if (prefs.general.radiusKm && (prefs.general.radiusKm as unknown as number) < 1) {
+    // Validate alerts
+    if (prefs.alerts) {
+      if (prefs.alerts.radiusKm && (prefs.alerts.radiusKm as unknown as number) < 1) {
         errors.push('Alert radius must be at least 1 km');
       }
     }

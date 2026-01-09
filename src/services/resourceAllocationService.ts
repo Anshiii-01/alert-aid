@@ -209,7 +209,7 @@ class ResourceAllocationService {
       resources,
       totalCost,
       confidence: 0.75 + Math.random() * 0.15,
-      priorityLevel: severity,
+      priorityLevel: severity === 'moderate' ? 'medium' : severity,
       recommendations: this.generateRecommendations(resources, severity),
     };
 

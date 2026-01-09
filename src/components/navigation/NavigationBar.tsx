@@ -384,7 +384,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
     <NavigationContainer>
       <Brand>
         <img 
-          src="/Gemini_Generated_Image_7c3uv87c3uv87c3u.svg" 
+          src="./public/Gemini_Generated_Image_7c3uv87c3uv87c3u.png" 
           alt="Alert Aid Logo" 
           className="brand-logo"
         />
