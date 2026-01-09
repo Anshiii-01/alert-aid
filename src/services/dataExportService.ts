@@ -513,8 +513,8 @@ class DataExportService {
       const data = generator(100 + Math.floor(Math.random() * 100));
       
       // Apply date range filter
-      if (config.dateRange) {
-        return data.filter((item: { issuedAt?: string; reportedAt?: string }) => {
+      if (config.dateRange && Array.isArray(data)) {
+        return (data as Array<{ issuedAt?: string; reportedAt?: string }>).filter((item) => {
           const dateField = item.issuedAt || item.reportedAt;
           if (!dateField) return true;
           const date = new Date(dateField);

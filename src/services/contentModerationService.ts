@@ -717,9 +717,9 @@ class ContentModerationService {
         case 'less_than':
           return Number(fieldValue) < Number(condition.value);
         case 'in':
-          return Array.isArray(condition.value) && condition.value.includes(fieldValue);
+          return Array.isArray(condition.value) && condition.value.includes(String(fieldValue));
         case 'not_in':
-          return Array.isArray(condition.value) && !condition.value.includes(fieldValue);
+          return Array.isArray(condition.value) && !(condition.value as unknown[]).includes(fieldValue);
         default:
           return false;
       }
@@ -909,7 +909,7 @@ class ContentModerationService {
       .filter((i) => i.status === 'pending' || i.status === 'escalated');
 
     if (filter?.type) items = items.filter((i) => i.type === filter.type);
-    if (filter?.priority) items = items.filter((i) => i.priority <= filter.priority);
+    if (filter?.priority) items = items.filter((i) => i.priority <= filter.priority!);
 
     return items.sort((a, b) => a.priority - b.priority || a.createdAt.getTime() - b.createdAt.getTime());
   }

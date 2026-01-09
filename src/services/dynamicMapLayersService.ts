@@ -257,6 +257,7 @@ const DEFAULT_LAYERS: Omit<MapLayer, 'visible' | 'opacity'>[] = [
     },
     style: {
       type: 'symbol',
+      paint: {},
       layout: {
         'icon-image': 'shelter',
         'icon-size': 1.2,
@@ -288,6 +289,7 @@ const DEFAULT_LAYERS: Omit<MapLayer, 'visible' | 'opacity'>[] = [
     },
     style: {
       type: 'symbol',
+      paint: {},
       layout: {
         'icon-image': 'hospital',
         'icon-size': 1,

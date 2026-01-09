@@ -721,7 +721,7 @@ class SecretManagementService {
     let secrets = Array.from(this.secrets.values());
     if (filter?.type) secrets = secrets.filter((s) => s.type === filter.type);
     if (filter?.status) secrets = secrets.filter((s) => s.status === filter.status);
-    if (filter?.path) secrets = secrets.filter((s) => s.path.startsWith(filter.path));
+    if (filter?.path) secrets = secrets.filter((s) => s.path.startsWith(filter.path!));
     if (filter?.tags?.length) {
       secrets = secrets.filter((s) => filter.tags!.some((t) => s.metadata.tags.includes(t)));
     }

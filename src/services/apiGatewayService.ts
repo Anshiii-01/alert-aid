@@ -1,1195 +1,2102 @@
 /**
  * API Gateway Service
- * Comprehensive API gateway management, routing, and traffic control
+ * Centralized API management, rate limiting, and request routing
  */
 
-// API Protocol
-type APIProtocol = 'http' | 'https' | 'grpc' | 'websocket' | 'graphql';
+// HTTP method
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD';
 
-// HTTP Method
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+// API status
+type ApiStatus = 'healthy' | 'degraded' | 'down' | 'maintenance';
 
-// API Status
-type APIStatus = 'active' | 'inactive' | 'deprecated' | 'draft' | 'maintenance';
+// Rate limit strategy
+type RateLimitStrategy = 'fixed_window' | 'sliding_window' | 'token_bucket' | 'leaky_bucket';
 
-// Authentication Type
-type AuthenticationType = 'none' | 'api_key' | 'jwt' | 'oauth2' | 'basic' | 'mtls' | 'custom';
+// Auth type
+type AuthType = 'none' | 'api_key' | 'bearer' | 'basic' | 'oauth2' | 'hmac';
 
-// Rate Limit Unit
-type RateLimitUnit = 'second' | 'minute' | 'hour' | 'day';
+// API key status
+type ApiKeyStatus = 'active' | 'suspended' | 'expired' | 'revoked';
 
-// API Gateway
-interface APIGateway {
+// Request priority
+type RequestPriority = 'critical' | 'high' | 'normal' | 'low';
+
+// API endpoint
+interface ApiEndpoint {
   id: string;
+  path: string;
+  method: HttpMethod;
   name: string;
   description: string;
-  domain: string;
-  basePath: string;
   version: string;
-  protocol: APIProtocol;
-  environment: GatewayEnvironment;
-  configuration: GatewayConfiguration;
-  security: GatewaySecurity;
-  routing: GatewayRouting;
-  middleware: GatewayMiddleware[];
-  monitoring: GatewayMonitoring;
-  deployment: GatewayDeployment;
-  documentation: GatewayDocumentation;
-  status: APIStatus;
-  metadata: GatewayMetadata;
+  service: string;
+  isEnabled: boolean;
+  isPublic: boolean;
+  authType: AuthType;
+  requiredPermissions: string[];
+  rateLimit?: RateLimitConfig;
+  timeout: number; // in ms
+  retries: number;
+  caching?: CacheConfig;
+  validation?: ValidationConfig;
+  transformation?: TransformConfig;
+  cors?: CorsConfig;
+  documentation?: EndpointDocumentation;
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// Gateway Environment
-interface GatewayEnvironment {
-  type: 'development' | 'staging' | 'production';
-  region: string;
-  cluster: string;
-  replicas: number;
-  resources: ResourceAllocation;
-  variables: Record<string, string>;
-}
-
-// Resource Allocation
-interface ResourceAllocation {
-  cpu: string;
-  memory: string;
-  maxConnections: number;
-  maxRequestsPerSecond: number;
-}
-
-// Gateway Configuration
-interface GatewayConfiguration {
-  timeout: TimeoutConfig;
-  retry: RetryConfig;
-  circuitBreaker: CircuitBreakerConfig;
-  cors: CORSConfig;
-  compression: CompressionConfig;
-  requestSize: RequestSizeConfig;
-  logging: LoggingConfig;
-  caching: CachingConfig;
-}
-
-// Timeout Config
-interface TimeoutConfig {
-  connection: number;
-  read: number;
-  write: number;
-  idle: number;
-  requestTimeout: number;
-}
-
-// Retry Config
-interface RetryConfig {
-  enabled: boolean;
-  maxRetries: number;
-  retryableStatusCodes: number[];
-  retryableMethods: HTTPMethod[];
-  backoff: BackoffConfig;
-}
-
-// Backoff Config
-interface BackoffConfig {
-  type: 'fixed' | 'exponential' | 'linear';
-  initial: number;
-  maximum: number;
-  multiplier: number;
-}
-
-// Circuit Breaker Config
-interface CircuitBreakerConfig {
-  enabled: boolean;
-  threshold: number;
-  timeout: number;
-  halfOpenRequests: number;
-  failureRateThreshold: number;
-  slowCallRateThreshold: number;
-  slowCallDuration: number;
-}
-
-// CORS Config
-interface CORSConfig {
-  enabled: boolean;
-  allowedOrigins: string[];
-  allowedMethods: HTTPMethod[];
-  allowedHeaders: string[];
-  exposedHeaders: string[];
-  allowCredentials: boolean;
-  maxAge: number;
-}
-
-// Compression Config
-interface CompressionConfig {
-  enabled: boolean;
-  minSize: number;
-  algorithms: ('gzip' | 'deflate' | 'br')[];
-  mimeTypes: string[];
-}
-
-// Request Size Config
-interface RequestSizeConfig {
-  maxBodySize: number;
-  maxHeaderSize: number;
-  maxURILength: number;
-}
-
-// Logging Config
-interface LoggingConfig {
-  enabled: boolean;
-  level: 'debug' | 'info' | 'warn' | 'error';
-  format: 'json' | 'text' | 'clf';
-  includeHeaders: boolean;
-  includeBody: boolean;
-  sensitiveFields: string[];
-  destination: string;
-}
-
-// Caching Config
-interface CachingConfig {
-  enabled: boolean;
-  defaultTTL: number;
-  maxSize: number;
-  varyHeaders: string[];
-  cacheControl: boolean;
-  store: 'memory' | 'redis' | 'memcached';
-}
-
-// Gateway Security
-interface GatewaySecurity {
-  authentication: AuthenticationConfig;
-  authorization: AuthorizationConfig;
-  rateLimiting: RateLimitConfig;
-  ipFiltering: IPFilterConfig;
-  waf: WAFConfig;
-  encryption: EncryptionConfig;
-}
-
-// Authentication Config
-interface AuthenticationConfig {
-  type: AuthenticationType;
-  required: boolean;
-  providers: AuthProvider[];
-  tokenLocation: 'header' | 'query' | 'cookie';
-  tokenName: string;
-  passthrough: boolean;
-}
-
-// Auth Provider
-interface AuthProvider {
-  id: string;
-  name: string;
-  type: AuthenticationType;
-  config: AuthProviderConfig;
-  enabled: boolean;
-}
-
-// Auth Provider Config
-interface AuthProviderConfig {
-  issuer?: string;
-  audience?: string;
-  jwksUri?: string;
-  clientId?: string;
-  clientSecret?: string;
-  scopes?: string[];
-  validationRules?: ValidationRule[];
-}
-
-// Validation Rule
-interface ValidationRule {
-  claim: string;
-  operator: 'equals' | 'contains' | 'matches' | 'exists';
-  value?: string;
-}
-
-// Authorization Config
-interface AuthorizationConfig {
-  enabled: boolean;
-  type: 'rbac' | 'abac' | 'custom';
-  policyEngine: string;
-  policies: AuthPolicy[];
-  defaultAction: 'allow' | 'deny';
-}
-
-// Auth Policy
-interface AuthPolicy {
-  id: string;
-  name: string;
-  description: string;
-  rules: PolicyRule[];
-  priority: number;
-  enabled: boolean;
-}
-
-// Policy Rule
-interface PolicyRule {
-  id: string;
-  resource: string;
-  action: string;
-  effect: 'allow' | 'deny';
-  conditions?: PolicyCondition[];
-}
-
-// Policy Condition
-interface PolicyCondition {
-  attribute: string;
-  operator: string;
-  value: string | number | boolean;
-}
-
-// Rate Limit Config
+// Rate limit config
 interface RateLimitConfig {
-  enabled: boolean;
-  defaultLimit: RateLimit;
-  plans: RateLimitPlan[];
-  keyExtractor: 'ip' | 'api_key' | 'user' | 'custom';
-  responseHeaders: boolean;
-  burstAllowed: boolean;
-}
-
-// Rate Limit
-interface RateLimit {
-  requests: number;
-  period: RateLimitUnit;
-  burstSize?: number;
-}
-
-// Rate Limit Plan
-interface RateLimitPlan {
-  id: string;
-  name: string;
-  description: string;
-  limits: RateLimit[];
-  quotas: Quota[];
-  features: string[];
-  price?: number;
-}
-
-// Quota
-interface Quota {
-  name: string;
+  strategy: RateLimitStrategy;
   limit: number;
-  period: 'day' | 'month' | 'year';
-  resetBehavior: 'rolling' | 'calendar';
+  window: number; // in seconds
+  burstLimit?: number;
+  keyGenerator?: 'ip' | 'api_key' | 'user' | 'custom';
+  customKeyHeader?: string;
+  excludeRoles?: string[];
+  responseHeaders: boolean;
 }
 
-// IP Filter Config
-interface IPFilterConfig {
+// Cache config
+interface CacheConfig {
   enabled: boolean;
-  mode: 'whitelist' | 'blacklist';
-  rules: IPFilterRule[];
-  geoBlocking: GeoBlockingConfig;
+  ttl: number; // in seconds
+  staleWhileRevalidate?: number;
+  varyBy: ('query' | 'headers' | 'auth')[];
+  excludeParams?: string[];
+  private: boolean;
 }
 
-// IP Filter Rule
-interface IPFilterRule {
-  id: string;
-  type: 'ip' | 'cidr' | 'range';
-  value: string;
-  action: 'allow' | 'deny';
-  description?: string;
-}
-
-// Geo Blocking Config
-interface GeoBlockingConfig {
+// Validation config
+interface ValidationConfig {
   enabled: boolean;
-  mode: 'whitelist' | 'blacklist';
-  countries: string[];
+  schema?: Record<string, unknown>;
+  strictMode: boolean;
+  coerceTypes: boolean;
+  removeAdditional: boolean;
 }
 
-// WAF Config
-interface WAFConfig {
-  enabled: boolean;
-  rulesets: WAFRuleset[];
-  customRules: WAFRule[];
-  mode: 'detection' | 'prevention';
-  logLevel: 'minimal' | 'standard' | 'detailed';
+// Transform config
+interface TransformConfig {
+  request?: {
+    headers?: Record<string, string>;
+    body?: Record<string, unknown>;
+  };
+  response?: {
+    headers?: Record<string, string>;
+    body?: Record<string, unknown>;
+  };
 }
 
-// WAF Ruleset
-interface WAFRuleset {
-  id: string;
+// CORS config
+interface CorsConfig {
+  allowOrigins: string[];
+  allowMethods: HttpMethod[];
+  allowHeaders: string[];
+  exposeHeaders: string[];
+  maxAge: number;
+  credentials: boolean;
+}
+
+// Endpoint documentation
+interface EndpointDocumentation {
+  summary: string;
+  description: string;
+  tags: string[];
+  parameters: ParameterDoc[];
+  requestBody?: RequestBodyDoc;
+  responses: ResponseDoc[];
+  examples?: ExampleDoc[];
+}
+
+// Parameter documentation
+interface ParameterDoc {
   name: string;
-  version: string;
-  enabled: boolean;
-  paranoia: 1 | 2 | 3 | 4;
+  in: 'path' | 'query' | 'header' | 'cookie';
+  required: boolean;
+  type: string;
+  description: string;
+  default?: unknown;
+  enum?: unknown[];
 }
 
-// WAF Rule
-interface WAFRule {
+// Request body documentation
+interface RequestBodyDoc {
+  required: boolean;
+  contentType: string;
+  schema: Record<string, unknown>;
+  description: string;
+}
+
+// Response documentation
+interface ResponseDoc {
+  statusCode: number;
+  description: string;
+  contentType?: string;
+  schema?: Record<string, unknown>;
+}
+
+// Example documentation
+interface ExampleDoc {
+  name: string;
+  request?: Record<string, unknown>;
+  response?: Record<string, unknown>;
+  status: ApiStatus;
+  version: string;
+  authentication: {
+    required: boolean;
+    type: AuthType;
+    scopes?: string[];
+  };
+  rateLimit: {
+    enabled: boolean;
+    requests: number;
+    window: number;
+    strategy: RateLimitStrategy;
+    keyBy?: 'ip' | 'user' | 'api_key' | 'custom';
+  };
+  request: {
+    headers?: { name: string; required: boolean; description: string }[];
+    queryParams?: { name: string; type: string; required: boolean; description: string }[];
+    pathParams?: { name: string; type: string; description: string }[];
+    body?: {
+      contentType: string;
+      schema?: Record<string, unknown>;
+      example?: unknown;
+    };
+  };
+  response: {
+    contentType: string;
+    statusCodes: {
+      code: number;
+      description: string;
+      schema?: Record<string, unknown>;
+      example?: unknown;
+    }[];
+  };
+  backend: {
+    type: 'http' | 'lambda' | 'mock' | 'websocket';
+    url?: string;
+    method?: HttpMethod;
+    timeout: number;
+    retries: number;
+    circuitBreaker?: {
+      enabled: boolean;
+      threshold: number;
+      timeout: number;
+    };
+  };
+  transformation: {
+    request?: TransformRule[];
+    response?: TransformRule[];
+  };
+  validation: {
+    enabled: boolean;
+    validateRequest: boolean;
+    validateResponse: boolean;
+    strictMode: boolean;
+  };
+  caching: {
+    enabled: boolean;
+    ttl: number;
+    keyParams?: string[];
+    varyHeaders?: string[];
+  };
+  cors: {
+    enabled: boolean;
+    allowedOrigins: string[];
+    allowedMethods: HttpMethod[];
+    allowedHeaders: string[];
+    exposeHeaders: string[];
+    maxAge: number;
+    credentials: boolean;
+  };
+  logging: {
+    enabled: boolean;
+    level: 'none' | 'error' | 'info' | 'debug';
+    includeRequestBody: boolean;
+    includeResponseBody: boolean;
+  };
+  tags: string[];
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    updatedAt: Date;
+    updatedBy: string;
+  };
+}
+
+// Transform rule
+interface TransformRule {
+  id: string;
+  type: 'add' | 'remove' | 'rename' | 'modify' | 'map';
+  target: 'header' | 'query' | 'body' | 'path';
+  source?: string;
+  destination?: string;
+  value?: unknown;
+  template?: string;
+  condition?: string;
+}
+
+// API definition
+interface ApiDefinition {
   id: string;
   name: string;
   description: string;
-  condition: string;
-  action: 'block' | 'allow' | 'log' | 'challenge';
-  priority: number;
-  enabled: boolean;
+  version: string;
+  basePath: string;
+  status: ApiStatus;
+  environment: 'development' | 'staging' | 'production';
+  endpoints: ApiEndpoint[];
+  authentication: {
+    defaultType: AuthType;
+    apiKeyHeader?: string;
+    apiKeyQuery?: string;
+    jwtSecret?: string;
+    oauth2Config?: {
+      authorizationUrl: string;
+      tokenUrl: string;
+      scopes: { name: string; description: string }[];
+    };
+  };
+  rateLimit: {
+    enabled: boolean;
+    defaultRequests: number;
+    defaultWindow: number;
+    strategy: RateLimitStrategy;
+  };
+  security: {
+    ipWhitelist?: string[];
+    ipBlacklist?: string[];
+    requireHttps: boolean;
+    validateOrigin: boolean;
+    allowedOrigins?: string[];
+  };
+  documentation: {
+    enabled: boolean;
+    url?: string;
+    openApiSpec?: string;
+  };
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    updatedAt: Date;
+    updatedBy: string;
+    publishedAt?: Date;
+  };
 }
 
-// Encryption Config
-interface EncryptionConfig {
-  tlsEnabled: boolean;
-  tlsVersion: 'TLS1.2' | 'TLS1.3';
-  cipherSuites: string[];
-  certificateId?: string;
-  mtlsEnabled: boolean;
-  mtlsConfig?: MTLSConfig;
+// API key
+interface ApiKey {
+  id: string;
+  key: string;
+  keyHash: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  ownerType: 'user' | 'organization' | 'service';
+  status: ApiKeyStatus;
+  permissions: string[];
+  rateLimit?: RateLimitConfig;
+  allowedOrigins?: string[];
+  allowedIPs?: string[];
+  expiresAt?: Date;
+  lastUsedAt?: Date;
+  usageCount: number;
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// MTLS Config
-interface MTLSConfig {
-  clientCertRequired: boolean;
-  trustedCAs: string[];
-  verifyDepth: number;
-  allowExpired: boolean;
+// API request
+interface ApiRequest {
+  id: string;
+  timestamp: Date;
+  method: HttpMethod;
+  path: string;
+  endpoint?: string;
+  version: string;
+  headers: Record<string, string>;
+  query: Record<string, string>;
+  body?: unknown;
+  clientIP: string;
+  userAgent: string;
+  auth?: RequestAuth;
+  priority: RequestPriority;
+  correlationId: string;
+  traceId?: string;
 }
 
-// Gateway Routing
-interface GatewayRouting {
-  routes: Route[];
-  defaultBackend?: string;
-  loadBalancing: LoadBalancingConfig;
-  trafficSplitting: TrafficSplitConfig;
-  canary: CanaryConfig;
+// Request auth
+interface RequestAuth {
+  type: AuthType;
+  apiKeyId?: string;
+  userId?: string;
+  token?: string;
+  scopes?: string[];
+}
+
+// API response
+interface ApiResponse {
+  requestId: string;
+  statusCode: number;
+  headers: Record<string, string>;
+  body?: unknown;
+  latency: number; // in ms
+  cached: boolean;
+  retried: number;
+  error?: ApiError;
+  timestamp: Date;
+}
+
+// API error
+interface ApiError {
+  code: string;
+  message: string;
+  details?: unknown;
+  stack?: string;
+  retryable: boolean;
+  name: string;
+  key: string;
+  prefix: string;
+  status: 'active' | 'inactive' | 'revoked' | 'expired';
+  owner: {
+    type: 'user' | 'application' | 'service';
+    id: string;
+    name: string;
+  };
+  permissions: {
+    apis: string[];
+    endpoints: string[];
+    scopes: string[];
+  };
+  rateLimit: {
+    requests: number;
+    window: number;
+  };
+  quota: {
+    enabled: boolean;
+    limit: number;
+    period: 'day' | 'week' | 'month';
+    used: number;
+    resetAt: Date;
+  };
+  restrictions: {
+    ipAddresses?: string[];
+    referrers?: string[];
+    environments?: string[];
+  };
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    expiresAt?: Date;
+    lastUsedAt?: Date;
+    usageCount: number;
+  };
+}
+
+// Request log
+interface RequestLog {
+  id: string;
+  requestId: string;
+  timestamp: Date;
+  apiId: string;
+  endpointId: string;
+  path: string;
+  method: HttpMethod;
+  clientIp: string;
+  userAgent: string;
+  apiKeyId?: string;
+  userId?: string;
+  request: {
+    headers: Record<string, string>;
+    queryParams: Record<string, string>;
+    body?: unknown;
+    size: number;
+  };
+  response: {
+    statusCode: number;
+    headers: Record<string, string>;
+    body?: unknown;
+    size: number;
+  };
+  latency: {
+    total: number;
+    gateway: number;
+    backend: number;
+  };
+  cache: {
+    hit: boolean;
+    key?: string;
+  };
+  rateLimit: {
+    remaining: number;
+    limit: number;
+    reset: Date;
+  };
+  errors?: {
+    type: string;
+    message: string;
+    stack?: string;
+  }[];
+  tags: string[];
+}
+
+// Rate limit info
+interface RateLimitInfo {
+  limit: number;
+  remaining: number;
+  reset: Date;
+  retryAfter?: number;
+  exceeded: boolean;
+}
+
+// Service health
+interface ServiceHealth {
+  serviceId: string;
+  name: string;
+  status: ApiStatus;
+  latency: number;
+  uptime: number;
+  lastCheck: Date;
+  endpoints: number;
+  errors: number;
+  version: string;
+  instances: ServiceInstance[];
+}
+
+// Service instance
+interface ServiceInstance {
+  id: string;
+  host: string;
+  port: number;
+  status: ApiStatus;
+  weight: number;
+  activeConnections: number;
+  lastHealthCheck: Date;
 }
 
 // Route
 interface Route {
   id: string;
-  name: string;
-  description: string;
-  path: string;
-  pathType: 'exact' | 'prefix' | 'regex';
-  methods: HTTPMethod[];
-  backends: RouteBackend[];
-  middleware: string[];
-  transformations: RouteTransformation;
-  validation: RouteValidation;
-  documentation: RouteDocumentation;
-  enabled: boolean;
-  metadata: RouteMetadata;
-}
-
-// Route Backend
-interface RouteBackend {
-  id: string;
-  name: string;
-  type: 'service' | 'url' | 'lambda' | 'mock';
-  target: string;
-  weight: number;
-  healthCheck?: HealthCheckConfig;
-  timeout?: number;
-}
-
-// Health Check Config
-interface HealthCheckConfig {
-  enabled: boolean;
-  path: string;
-  interval: number;
-  timeout: number;
-  healthyThreshold: number;
-  unhealthyThreshold: number;
-  expectedStatus: number[];
-}
-
-// Route Transformation
-interface RouteTransformation {
-  request: RequestTransformation;
-  response: ResponseTransformation;
-}
-
-// Request Transformation
-interface RequestTransformation {
-  pathRewrite?: PathRewrite;
-  headerModifications: HeaderModification[];
-  queryModifications: QueryModification[];
-  bodyTransformation?: BodyTransformation;
-}
-
-// Path Rewrite
-interface PathRewrite {
-  type: 'replace' | 'regex';
   pattern: string;
-  replacement: string;
+  method: HttpMethod | HttpMethod[];
+  target: RouteTarget;
+  priority: number;
+  conditions?: RouteCondition[];
+  middleware: string[];
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// Header Modification
-interface HeaderModification {
-  action: 'add' | 'set' | 'remove';
-  name: string;
+// Route target
+interface RouteTarget {
+  type: 'service' | 'url' | 'mock' | 'redirect';
+  service?: string;
+  url?: string;
+  statusCode?: number;
+  body?: unknown;
+}
+
+// Route condition
+interface RouteCondition {
+  type: 'header' | 'query' | 'path' | 'method' | 'ip';
+  key?: string;
+  operator: 'equals' | 'contains' | 'regex' | 'exists' | 'not_exists';
   value?: string;
 }
 
-// Query Modification
-interface QueryModification {
-  action: 'add' | 'set' | 'remove';
-  name: string;
-  value?: string;
-}
-
-// Body Transformation
-interface BodyTransformation {
-  type: 'jq' | 'template' | 'xslt';
-  template: string;
-}
-
-// Response Transformation
-interface ResponseTransformation {
-  headerModifications: HeaderModification[];
-  statusCodeMapping?: Record<number, number>;
-  bodyTransformation?: BodyTransformation;
-}
-
-// Route Validation
-interface RouteValidation {
+// Circuit breaker config
+interface CircuitBreakerConfig {
   enabled: boolean;
-  requestValidation: RequestValidation;
-  responseValidation: ResponseValidation;
-}
-
-// Request Validation
-interface RequestValidation {
-  validateBody: boolean;
-  validateHeaders: boolean;
-  validateQueryParams: boolean;
-  schema?: string;
-  contentTypes: string[];
-}
-
-// Response Validation
-interface ResponseValidation {
-  validateBody: boolean;
-  validateHeaders: boolean;
-  schema?: string;
-}
-
-// Route Documentation
-interface RouteDocumentation {
-  summary: string;
-  description: string;
-  tags: string[];
-  operationId: string;
-  deprecated: boolean;
-  externalDocs?: string;
-}
-
-// Route Metadata
-interface RouteMetadata {
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  version: number;
-  owner: string;
-  team: string;
-}
-
-// Load Balancing Config
-interface LoadBalancingConfig {
-  algorithm: 'round_robin' | 'least_connections' | 'ip_hash' | 'weighted' | 'random';
-  healthyOnly: boolean;
-  stickySessions: StickySessionConfig;
-}
-
-// Sticky Session Config
-interface StickySessionConfig {
-  enabled: boolean;
-  type: 'cookie' | 'header' | 'ip';
-  cookieName?: string;
-  ttl: number;
-}
-
-// Traffic Split Config
-interface TrafficSplitConfig {
-  enabled: boolean;
-  rules: TrafficSplitRule[];
-}
-
-// Traffic Split Rule
-interface TrafficSplitRule {
-  id: string;
-  name: string;
-  condition: string;
-  backends: { backend: string; weight: number }[];
-}
-
-// Canary Config
-interface CanaryConfig {
-  enabled: boolean;
-  weight: number;
-  backend: string;
-  headerMatch?: string;
-  cookieMatch?: string;
-  metrics: CanaryMetrics;
-}
-
-// Canary Metrics
-interface CanaryMetrics {
-  errorRateThreshold: number;
-  latencyThreshold: number;
-  autoRollback: boolean;
-}
-
-// Gateway Middleware
-interface GatewayMiddleware {
-  id: string;
-  name: string;
-  type: MiddlewareType;
-  order: number;
-  config: Record<string, unknown>;
-  enabled: boolean;
-}
-
-// Middleware Type
-type MiddlewareType = 'authentication' | 'authorization' | 'rate_limiting' | 'caching' | 'transformation' | 'logging' | 'metrics' | 'validation' | 'custom';
-
-// Gateway Monitoring
-interface GatewayMonitoring {
-  metrics: MetricsConfig;
-  tracing: TracingConfig;
-  alerts: AlertConfig[];
-  dashboards: DashboardConfig[];
-}
-
-// Metrics Config
-interface MetricsConfig {
-  enabled: boolean;
-  provider: 'prometheus' | 'cloudwatch' | 'datadog' | 'custom';
-  endpoint: string;
-  labels: Record<string, string>;
-  histogramBuckets: number[];
-  collectInterval: number;
-}
-
-// Tracing Config
-interface TracingConfig {
-  enabled: boolean;
-  provider: 'jaeger' | 'zipkin' | 'xray' | 'otel';
-  samplingRate: number;
-  propagation: 'b3' | 'w3c' | 'jaeger';
-  endpoint: string;
-}
-
-// Alert Config
-interface AlertConfig {
-  id: string;
-  name: string;
-  description: string;
-  metric: string;
-  condition: AlertCondition;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  channels: string[];
-  enabled: boolean;
-}
-
-// Alert Condition
-interface AlertCondition {
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
-  threshold: number;
-  duration: number;
-  aggregation: 'avg' | 'sum' | 'max' | 'min' | 'count';
-}
-
-// Dashboard Config
-interface DashboardConfig {
-  id: string;
-  name: string;
-  description: string;
-  panels: DashboardPanel[];
-  refreshInterval: number;
-}
-
-// Dashboard Panel
-interface DashboardPanel {
-  id: string;
-  title: string;
-  type: 'graph' | 'gauge' | 'table' | 'stat' | 'heatmap';
-  metrics: string[];
-  position: { x: number; y: number; w: number; h: number };
-}
-
-// Gateway Deployment
-interface GatewayDeployment {
-  type: 'kubernetes' | 'ecs' | 'lambda' | 'vm' | 'serverless';
-  strategy: DeploymentStrategy;
-  history: DeploymentHistory[];
-  rollback: RollbackConfig;
-  scaling: ScalingConfig;
-}
-
-// Deployment Strategy
-interface DeploymentStrategy {
-  type: 'rolling' | 'blue_green' | 'canary' | 'recreate';
-  maxSurge: number;
-  maxUnavailable: number;
-  minReadySeconds: number;
-}
-
-// Deployment History
-interface DeploymentHistory {
-  id: string;
-  version: string;
-  timestamp: Date;
-  status: 'success' | 'failed' | 'rolled_back';
-  changes: string[];
-  deployedBy: string;
-  duration: number;
-}
-
-// Rollback Config
-interface RollbackConfig {
-  enabled: boolean;
-  automatic: boolean;
-  threshold: number;
-  window: number;
-  keepVersions: number;
-}
-
-// Scaling Config
-interface ScalingConfig {
-  enabled: boolean;
-  minReplicas: number;
-  maxReplicas: number;
-  targetCPU: number;
-  targetMemory: number;
-  targetRPS: number;
-  scaleUpStabilization: number;
-  scaleDownStabilization: number;
-}
-
-// Gateway Documentation
-interface GatewayDocumentation {
-  openapi: OpenAPIConfig;
-  asyncapi?: AsyncAPIConfig;
-  portal: PortalConfig;
-}
-
-// OpenAPI Config
-interface OpenAPIConfig {
-  enabled: boolean;
-  version: '2.0' | '3.0' | '3.1';
-  path: string;
-  info: APIInfo;
-  servers: APIServer[];
-  security: SecurityScheme[];
-}
-
-// API Info
-interface APIInfo {
-  title: string;
-  description: string;
-  version: string;
-  termsOfService?: string;
-  contact: { name: string; email: string; url?: string };
-  license: { name: string; url?: string };
-}
-
-// API Server
-interface APIServer {
-  url: string;
-  description: string;
-  variables?: Record<string, { default: string; enum?: string[] }>;
-}
-
-// Security Scheme
-interface SecurityScheme {
-  type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect';
-  name: string;
-  in?: 'query' | 'header' | 'cookie';
-  scheme?: string;
-  flows?: Record<string, unknown>;
-}
-
-// AsyncAPI Config
-interface AsyncAPIConfig {
-  enabled: boolean;
-  version: string;
-  path: string;
-}
-
-// Portal Config
-interface PortalConfig {
-  enabled: boolean;
-  url: string;
-  theme: string;
-  customization: Record<string, unknown>;
-}
-
-// Gateway Metadata
-interface GatewayMetadata {
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  version: number;
-  owner: string;
-  team: string;
-  tags: string[];
-  labels: Record<string, string>;
-}
-
-// API Consumer
-interface APIConsumer {
-  id: string;
-  name: string;
-  description: string;
-  type: 'application' | 'user' | 'service';
-  credentials: ConsumerCredentials;
-  subscriptions: Subscription[];
-  usage: ConsumerUsage;
-  quotas: ConsumerQuota[];
-  status: 'active' | 'suspended' | 'revoked';
-  metadata: ConsumerMetadata;
-}
-
-// Consumer Credentials
-interface ConsumerCredentials {
-  apiKeys: APIKey[];
-  oauth2Clients: OAuth2Client[];
-  certificates: string[];
-}
-
-// API Key
-interface APIKey {
-  id: string;
+  threshold: number; // failure percentage
+  minRequests: number;
+  windowSize: number; // in seconds
+  timeout: number; // open state duration in seconds
+  halfOpenRequests: number;
   key: string;
-  name: string;
-  createdAt: Date;
-  expiresAt?: Date;
-  lastUsed?: Date;
-  scopes: string[];
-  rateLimit?: RateLimit;
-  ipWhitelist?: string[];
-  status: 'active' | 'revoked';
+  identifier: string;
+  requests: number;
+  limit: number;
+  remaining: number;
+  window: number;
+  resetAt: Date;
+  blocked: boolean;
+  blockedUntil?: Date;
 }
 
-// OAuth2 Client
-interface OAuth2Client {
-  id: string;
-  clientId: string;
-  clientSecret: string;
-  name: string;
-  grantTypes: string[];
-  redirectUris: string[];
-  scopes: string[];
-  status: 'active' | 'revoked';
+// Circuit breaker state
+interface CircuitBreakerState {
+  serviceId: string;
+  endpointId: string;
+  state: 'closed' | 'open' | 'half_open';
+  failures: number;
+  successes: number;
+  lastFailure?: Date;
+  lastSuccess?: Date;
+  openedAt?: Date;
+  closedAt?: Date;
 }
 
-// Subscription
-interface Subscription {
-  id: string;
-  apiId: string;
-  planId: string;
-  status: 'active' | 'pending' | 'suspended' | 'cancelled';
-  startDate: Date;
-  endDate?: Date;
-  autoRenew: boolean;
+// API metrics
+interface ApiMetrics {
+  closesAt?: Date;
+  threshold: number;
+  halfOpenRequests: number;
 }
 
-// Consumer Usage
-interface ConsumerUsage {
+// Gateway metrics
+interface GatewayMetrics {
+  period: { start: Date; end: Date };
   totalRequests: number;
   successfulRequests: number;
   failedRequests: number;
-  averageLatency: number;
-  bandwidthUsed: number;
-  lastRequest?: Date;
-  topEndpoints: { endpoint: string; count: number }[];
+  avgLatency: number;
+  p50Latency: number;
+  p95Latency: number;
+  p99Latency: number;
+  requestsPerSecond: number;
+  bytesIn: number;
+  bytesOut: number;
+  cacheHitRate: number;
+  rateLimitExceeded: number;
+  byStatusCode: { code: number; count: number }[];
+  byEndpoint: { endpoint: string; count: number; avgLatency: number }[];
+  byMethod: { method: HttpMethod; count: number }[];
+  byClient: { clientId: string; count: number }[];
 }
 
-// Consumer Quota
-interface ConsumerQuota {
+// Webhook config
+interface WebhookConfig {
+  id: string;
   name: string;
-  limit: number;
-  used: number;
-  period: string;
-  resetAt: Date;
-}
-
-// Consumer Metadata
-interface ConsumerMetadata {
+  url: string;
+  events: string[];
+  secret: string;
+  enabled: boolean;
+  retries: number;
+  timeout: number;
+  headers?: Record<string, string>;
   createdAt: Date;
-  createdBy: string;
   updatedAt: Date;
-  owner: string;
-  contact: string;
-  notes?: string;
 }
 
-// Gateway Statistics
-interface GatewayStatistics {
-  overview: {
-    totalRequests: number;
-    successfulRequests: number;
-    failedRequests: number;
-    averageLatency: number;
-    p50Latency: number;
-    p95Latency: number;
-    p99Latency: number;
-    errorRate: number;
-    throughput: number;
+// Webhook delivery
+interface WebhookDelivery {
+  id: string;
+  webhookId: string;
+  event: string;
+  payload: unknown;
+  url: string;
+  status: 'pending' | 'success' | 'failed';
+  statusCode?: number;
+  response?: string;
+  attempts: number;
+  lastAttempt?: Date;
+  nextRetry?: Date;
+  createdAt: Date;
+}
+
+// Request log
+interface RequestLog {
+  id: string;
+  request: Omit<ApiRequest, 'body'>;
+  response: Omit<ApiResponse, 'body'>;
+  requestBodySize: number;
+  responseBodySize: number;
+  duration: number;
+  endpoint?: string;
+  apiKeyId?: string;
+  userId?: string;
+  tags: string[];
+}
+
+// Gateway config
+interface GatewayConfig {
+  globalRateLimit: RateLimitConfig;
+  defaultTimeout: number;
+  maxRequestSize: number; // in bytes
+  enableCors: boolean;
+  defaultCors: CorsConfig;
+  circuitBreaker: CircuitBreakerConfig;
+  logging: {
+    enabled: boolean;
+    level: 'debug' | 'info' | 'warn' | 'error';
+    logBody: boolean;
+    excludePaths: string[];
   };
-  byStatus: Record<number, number>;
-  byMethod: Record<HTTPMethod, number>;
-  byRoute: { route: string; requests: number; latency: number; errors: number }[];
-  byConsumer: { consumer: string; requests: number; quota: number }[];
   security: {
-    blockedRequests: number;
-    authFailures: number;
-    rateLimitExceeded: number;
-    wafBlocked: number;
+    enableWaf: boolean;
+    blockMalicious: boolean;
+    sqlInjectionProtection: boolean;
+    xssProtection: boolean;
+    rateLimitByIP: boolean;
   };
-  health: {
-    uptime: number;
-    healthyBackends: number;
-    unhealthyBackends: number;
-    circuitBreakerTrips: number;
+  versioning: {
+    defaultVersion: string;
+    headerName: string;
+    queryParam: string;
   };
 }
 
-class APIGatewayService {
-  private static instance: APIGatewayService;
-  private gateways: Map<string, APIGateway> = new Map();
-  private consumers: Map<string, APIConsumer> = new Map();
-  private eventListeners: ((event: string, data: unknown) => void)[] = [];
+// Default gateway config
+const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
+  globalRateLimit: {
+    strategy: 'sliding_window',
+    limit: 1000,
+    window: 60,
+    burstLimit: 50,
+    keyGenerator: 'ip',
+    responseHeaders: true,
+  },
+  defaultTimeout: 30000,
+  maxRequestSize: 10 * 1024 * 1024, // 10MB
+  enableCors: true,
+  defaultCors: {
+    allowOrigins: ['*'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+    exposeHeaders: ['X-Request-Id', 'X-RateLimit-Remaining'],
+    maxAge: 86400,
+    credentials: false,
+  },
+  circuitBreaker: {
+    enabled: true,
+    threshold: 50,
+    minRequests: 10,
+    windowSize: 60,
+    timeout: 30,
+    halfOpenRequests: 5,
+  },
+  logging: {
+    enabled: true,
+    level: 'info',
+    logBody: false,
+    excludePaths: ['/health', '/metrics'],
+  },
+  security: {
+    enableWaf: true,
+    blockMalicious: true,
+    sqlInjectionProtection: true,
+    xssProtection: true,
+    rateLimitByIP: true,
+  },
+  versioning: {
+    defaultVersion: 'v1',
+    headerName: 'X-API-Version',
+    queryParam: 'version',
+  },
+};
+
+class ApiGatewayService {
+  private static instance: ApiGatewayService;
+  private endpoints: Map<string, ApiEndpoint> = new Map();
+  private apiKeys: Map<string, ApiKey> = new Map();
+  private routes: Map<string, Route> = new Map();
+  private services: Map<string, ServiceHealth> = new Map();
+  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  private rateLimitBuckets: Map<string, { count: number; resetAt: Date }> = new Map();
+  private requestLogs: RequestLog[] = [];
+  private webhooks: Map<string, WebhookConfig> = new Map();
+  private webhookDeliveries: WebhookDelivery[] = [];
+  private config: GatewayConfig = DEFAULT_GATEWAY_CONFIG;
+  averageLatency: number;
+  p50Latency: number;
+  p95Latency: number;
+  p99Latency: number;
+  byStatusCode: Record<string, number>;
+  byEndpoint: { endpointId: string; path: string; requests: number; avgLatency: number }[];
+  byApiKey: { apiKeyId: string; name: string; requests: number }[];
+  cacheHitRate: number;
+  rateLimitExceeded: number;
+  authFailures: number;
+  errors: { type: string; count: number }[];
+  bandwidth: {
+    inbound: number;
+    outbound: number;
+  };
+}
+
+// Health check
+interface HealthCheck {
+  endpointId: string;
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  lastCheck: Date;
+  nextCheck: Date;
+  consecutiveFailures: number;
+  consecutiveSuccesses: number;
+  latency: number;
+  details?: {
+    statusCode?: number;
+    responseTime?: number;
+    error?: string;
+  };
+}
+
+// Plugin
+interface GatewayPlugin {
+  id: string;
+  name: string;
+  type: 'authentication' | 'rate_limiting' | 'transformation' | 'logging' | 'caching' | 'security' | 'custom';
+  enabled: boolean;
+  priority: number;
+  scope: 'global' | 'api' | 'endpoint';
+  apiId?: string;
+  endpointId?: string;
+  config: Record<string, unknown>;
+  metadata: {
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
+class ApiGatewayService {
+  private static instance: ApiGatewayService;
+  private apis: Map<string, ApiDefinition> = new Map();
+  private apiKeys: Map<string, ApiKey> = new Map();
+  private requestLogs: RequestLog[] = [];
+  private rateLimits: Map<string, RateLimitInfo> = new Map();
+  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  private healthChecks: Map<string, HealthCheck> = new Map();
+  private plugins: Map<string, GatewayPlugin> = new Map();
+  private listeners: ((event: string, data: unknown) => void)[] = [];
 
   private constructor() {
     this.initializeSampleData();
   }
 
-  public static getInstance(): APIGatewayService {
-    if (!APIGatewayService.instance) {
-      APIGatewayService.instance = new APIGatewayService();
+  public static getInstance(): ApiGatewayService {
+    if (!ApiGatewayService.instance) {
+      ApiGatewayService.instance = new ApiGatewayService();
     }
-    return APIGatewayService.instance;
+    return ApiGatewayService.instance;
   }
 
-  private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
+  /**
+   * Initialize sample data
+   */
   private initializeSampleData(): void {
-    // Initialize Gateways
-    const gatewayData = [
-      { name: 'Production API Gateway', domain: 'api.example.com', env: 'production' as const },
-      { name: 'Staging API Gateway', domain: 'api-staging.example.com', env: 'staging' as const },
-      { name: 'Development API Gateway', domain: 'api-dev.example.com', env: 'development' as const },
+    // Create sample endpoints
+    const sampleEndpoints: Omit<ApiEndpoint, 'createdAt' | 'updatedAt'>[] = [
+      {
+        id: 'ep-alerts-list',
+        path: '/api/v1/alerts',
+        method: 'GET',
+        name: 'List Alerts',
+        description: 'Get a paginated list of alerts',
+        version: 'v1',
+        service: 'alert-service',
+        isEnabled: true,
+        isPublic: true,
+        authType: 'bearer',
+        requiredPermissions: ['alerts:read'],
+        rateLimit: { strategy: 'sliding_window', limit: 100, window: 60, responseHeaders: true },
+        timeout: 30000,
+        retries: 3,
+        caching: { enabled: true, ttl: 60, varyBy: ['query', 'auth'], private: false },
+        metadata: {},
+      },
+      {
+        id: 'ep-alerts-create',
+        path: '/api/v1/alerts',
+        method: 'POST',
+        name: 'Create Alert',
+        description: 'Create a new alert',
+        version: 'v1',
+        service: 'alert-service',
+        isEnabled: true,
+        isPublic: false,
+        authType: 'bearer',
+        requiredPermissions: ['alerts:create'],
+        rateLimit: { strategy: 'fixed_window', limit: 10, window: 60, responseHeaders: true },
+        timeout: 60000,
+        retries: 1,
+        metadata: {},
+      },
+      {
+        id: 'ep-users-profile',
+        path: '/api/v1/users/:id',
+        method: 'GET',
+        name: 'Get User Profile',
+        description: 'Get user profile by ID',
+        version: 'v1',
+        service: 'user-service',
+        isEnabled: true,
+        isPublic: false,
+        authType: 'bearer',
+        requiredPermissions: ['users:read'],
+        timeout: 10000,
+        retries: 2,
+        caching: { enabled: true, ttl: 300, varyBy: ['auth'], private: true },
+        metadata: {},
+      },
+      {
+        id: 'ep-donations-create',
+        path: '/api/v1/donations',
+        method: 'POST',
+        name: 'Create Donation',
+        description: 'Process a new donation',
+        version: 'v1',
+        service: 'donation-service',
+        isEnabled: true,
+        isPublic: true,
+        authType: 'api_key',
+        requiredPermissions: [],
+        rateLimit: { strategy: 'token_bucket', limit: 50, window: 60, burstLimit: 10, responseHeaders: true },
+        timeout: 60000,
+        retries: 0,
+        metadata: {},
+      },
+      {
+        id: 'ep-health',
+        path: '/health',
+        method: 'GET',
+        name: 'Health Check',
+        description: 'API health check endpoint',
+        version: 'v1',
+        service: 'gateway',
+        isEnabled: true,
+        isPublic: true,
+        authType: 'none',
+        requiredPermissions: [],
+        timeout: 5000,
+        retries: 0,
+        metadata: {},
+      },
     ];
 
-    gatewayData.forEach((gw, idx) => {
-      const gateway: APIGateway = {
-        id: `gw-${(idx + 1).toString().padStart(4, '0')}`,
-        name: gw.name,
-        description: `${gw.env} API gateway for microservices`,
-        domain: gw.domain,
-        basePath: '/api',
-        version: 'v1',
-        protocol: 'https',
-        environment: {
-          type: gw.env,
-          region: 'us-west-2',
-          cluster: `${gw.env}-cluster`,
-          replicas: gw.env === 'production' ? 5 : gw.env === 'staging' ? 2 : 1,
-          resources: { cpu: gw.env === 'production' ? '2000m' : '500m', memory: gw.env === 'production' ? '4Gi' : '1Gi', maxConnections: 10000, maxRequestsPerSecond: 5000 },
-          variables: { ENV: gw.env, LOG_LEVEL: gw.env === 'production' ? 'info' : 'debug' },
+    sampleEndpoints.forEach((ep) => {
+      this.endpoints.set(ep.id, { ...ep, createdAt: new Date(), updatedAt: new Date() });
+    });
+
+    // Create sample API keys
+    for (let i = 1; i <= 10; i++) {
+      const apiKey: ApiKey = {
+        id: `key-${i.toString().padStart(6, '0')}`,
+        key: `ak_${this.generateRandomString(32)}`,
+        keyHash: `hash_${i}`,
+        name: `API Key ${i}`,
+        description: `API key for integration ${i}`,
+        ownerId: `user-${i}`,
+        ownerType: 'user',
+        status: 'active',
+        permissions: ['alerts:read', 'users:read'],
+        usageCount: Math.floor(Math.random() * 10000),
+        metadata: {},
+        createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(),
+      };
+      this.apiKeys.set(apiKey.id, apiKey);
+    }
+
+    // Create sample services
+    const serviceNames = ['alert-service', 'user-service', 'donation-service', 'notification-service'];
+    serviceNames.forEach((name, i) => {
+      const health: ServiceHealth = {
+        serviceId: `svc-${i + 1}`,
+        name,
+        status: i === 2 ? 'degraded' : 'healthy',
+        latency: 50 + Math.random() * 100,
+        uptime: 99.9 - Math.random() * 0.5,
+        lastCheck: new Date(),
+        endpoints: Math.floor(Math.random() * 10) + 5,
+        errors: Math.floor(Math.random() * 10),
+        version: '1.0.0',
+        instances: [
+          { id: `inst-${i}-1`, host: `${name}-1.internal`, port: 8080, status: 'healthy', weight: 1, activeConnections: Math.floor(Math.random() * 50), lastHealthCheck: new Date() },
+          { id: `inst-${i}-2`, host: `${name}-2.internal`, port: 8080, status: 'healthy', weight: 1, activeConnections: Math.floor(Math.random() * 50), lastHealthCheck: new Date() },
+        ],
+      };
+      this.services.set(name, health);
+      this.circuitBreakers.set(name, { serviceId: name, state: 'closed', failures: 0, successes: 100 });
+    });
+
+    // Create sample request logs
+    for (let i = 0; i < 1000; i++) {
+      const endpoint = sampleEndpoints[i % sampleEndpoints.length];
+      const log: RequestLog = {
+        id: `req-${i.toString().padStart(8, '0')}`,
+        request: {
+          id: `req-${i}`,
+          timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+          method: endpoint.method,
+          path: endpoint.path,
+          endpoint: endpoint.id,
+          version: 'v1',
+          headers: { 'content-type': 'application/json' },
+          query: {},
+          clientIP: `192.168.${Math.floor(i / 256)}.${i % 256}`,
+          userAgent: 'Mozilla/5.0',
+          priority: 'normal',
+          correlationId: `corr-${i}`,
         },
-        configuration: {
-          timeout: { connection: 5000, read: 30000, write: 30000, idle: 60000, requestTimeout: 60000 },
-          retry: { enabled: true, maxRetries: 3, retryableStatusCodes: [502, 503, 504], retryableMethods: ['GET', 'HEAD', 'OPTIONS'], backoff: { type: 'exponential', initial: 100, maximum: 5000, multiplier: 2 } },
-          circuitBreaker: { enabled: true, threshold: 5, timeout: 30000, halfOpenRequests: 3, failureRateThreshold: 50, slowCallRateThreshold: 80, slowCallDuration: 5000 },
-          cors: { enabled: true, allowedOrigins: ['https://example.com', 'https://app.example.com'], allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'], exposedHeaders: ['X-Request-ID'], allowCredentials: true, maxAge: 86400 },
-          compression: { enabled: true, minSize: 1024, algorithms: ['gzip', 'br'], mimeTypes: ['application/json', 'text/plain', 'text/html'] },
-          requestSize: { maxBodySize: 10485760, maxHeaderSize: 8192, maxURILength: 2048 },
-          logging: { enabled: true, level: gw.env === 'production' ? 'info' : 'debug', format: 'json', includeHeaders: true, includeBody: gw.env !== 'production', sensitiveFields: ['password', 'token', 'api_key'], destination: 'stdout' },
-          caching: { enabled: true, defaultTTL: 300, maxSize: 1073741824, varyHeaders: ['Accept', 'Accept-Language'], cacheControl: true, store: 'redis' },
+        response: {
+          requestId: `req-${i}`,
+          statusCode: i % 20 === 0 ? 500 : i % 10 === 0 ? 404 : 200,
+          headers: {},
+          latency: Math.floor(Math.random() * 500) + 20,
+          cached: i % 3 === 0,
+          retried: 0,
+          timestamp: new Date(),
+        },
+        requestBodySize: Math.floor(Math.random() * 1000),
+        responseBodySize: Math.floor(Math.random() * 5000),
+        duration: Math.floor(Math.random() * 500) + 20,
+        endpoint: endpoint.id,
+        tags: [endpoint.service, endpoint.method],
+      };
+      this.requestLogs.push(log);
+    }
+    // Initialize APIs
+    const apisData = [
+      {
+        name: 'Alert API',
+        description: 'Public API for alert management and notifications',
+        version: 'v1',
+        basePath: '/api/v1/alerts',
+        status: 'active',
+      },
+      {
+        name: 'Shelter API',
+        description: 'API for shelter information and availability',
+        version: 'v1',
+        basePath: '/api/v1/shelters',
+        status: 'active',
+      },
+      {
+        name: 'Resource API',
+        description: 'API for resource management and distribution',
+        version: 'v1',
+        basePath: '/api/v1/resources',
+        status: 'active',
+      },
+      {
+        name: 'User API',
+        description: 'User management and authentication API',
+        version: 'v1',
+        basePath: '/api/v1/users',
+        status: 'active',
+      },
+      {
+        name: 'Analytics API',
+        description: 'Analytics and reporting API (Beta)',
+        version: 'v1',
+        basePath: '/api/v1/analytics',
+        status: 'beta',
+      },
+    ];
+
+    apisData.forEach((api, idx) => {
+      const apiDef: ApiDefinition = {
+        id: `api-${(idx + 1).toString().padStart(4, '0')}`,
+        name: api.name,
+        description: api.description,
+        version: api.version,
+        basePath: api.basePath,
+        status: api.status as ApiStatus,
+        environment: 'production',
+        endpoints: [],
+        authentication: {
+          defaultType: 'api_key',
+          apiKeyHeader: 'X-API-Key',
+        },
+        rateLimit: {
+          enabled: true,
+          defaultRequests: 1000,
+          defaultWindow: 3600,
+          strategy: 'sliding_window',
         },
         security: {
-          authentication: {
-            type: 'jwt',
-            required: true,
-            providers: [
-              { id: 'auth0', name: 'Auth0', type: 'oauth2', config: { issuer: 'https://example.auth0.com/', audience: 'https://api.example.com', jwksUri: 'https://example.auth0.com/.well-known/jwks.json' }, enabled: true },
-              { id: 'api-key', name: 'API Key', type: 'api_key', config: {}, enabled: true },
-            ],
-            tokenLocation: 'header',
-            tokenName: 'Authorization',
-            passthrough: false,
-          },
-          authorization: {
-            enabled: true,
-            type: 'rbac',
-            policyEngine: 'opa',
-            policies: [
-              { id: 'admin-policy', name: 'Admin Access', description: 'Full admin access', rules: [{ id: 'rule-1', resource: '*', action: '*', effect: 'allow' }], priority: 1, enabled: true },
-              { id: 'user-policy', name: 'User Access', description: 'Standard user access', rules: [{ id: 'rule-2', resource: '/api/v1/users/*', action: 'read', effect: 'allow' }], priority: 10, enabled: true },
-            ],
-            defaultAction: 'deny',
-          },
-          rateLimiting: {
-            enabled: true,
-            defaultLimit: { requests: 1000, period: 'minute' },
-            plans: [
-              { id: 'free', name: 'Free Tier', description: 'Free tier limits', limits: [{ requests: 100, period: 'minute' }, { requests: 1000, period: 'day' }], quotas: [{ name: 'Daily Quota', limit: 1000, period: 'day', resetBehavior: 'calendar' }], features: ['basic'] },
-              { id: 'pro', name: 'Pro Tier', description: 'Professional tier', limits: [{ requests: 1000, period: 'minute' }, { requests: 100000, period: 'day' }], quotas: [{ name: 'Daily Quota', limit: 100000, period: 'day', resetBehavior: 'calendar' }], features: ['basic', 'advanced'], price: 99 },
-              { id: 'enterprise', name: 'Enterprise', description: 'Enterprise tier', limits: [{ requests: 10000, period: 'minute' }], quotas: [], features: ['basic', 'advanced', 'premium'], price: 499 },
-            ],
-            keyExtractor: 'api_key',
-            responseHeaders: true,
-            burstAllowed: true,
-          },
-          ipFiltering: { enabled: true, mode: 'blacklist', rules: [{ id: 'rule-1', type: 'cidr', value: '10.0.0.0/8', action: 'allow', description: 'Internal network' }], geoBlocking: { enabled: false, mode: 'blacklist', countries: [] } },
-          waf: { enabled: true, rulesets: [{ id: 'owasp-core', name: 'OWASP Core Ruleset', version: '3.3.2', enabled: true, paranoia: 2 }], customRules: [], mode: 'prevention', logLevel: 'standard' },
-          encryption: { tlsEnabled: true, tlsVersion: 'TLS1.3', cipherSuites: ['TLS_AES_256_GCM_SHA384', 'TLS_CHACHA20_POLY1305_SHA256'], mtlsEnabled: false },
-        },
-        routing: {
-          routes: [
-            {
-              id: 'route-users',
-              name: 'Users API',
-              description: 'User management endpoints',
-              path: '/api/v1/users',
-              pathType: 'prefix',
-              methods: ['GET', 'POST', 'PUT', 'DELETE'],
-              backends: [{ id: 'users-svc', name: 'Users Service', type: 'service', target: 'users-service.default.svc:8080', weight: 100, healthCheck: { enabled: true, path: '/health', interval: 10, timeout: 5, healthyThreshold: 2, unhealthyThreshold: 3, expectedStatus: [200] } }],
-              middleware: ['auth', 'rate-limit', 'logging'],
-              transformations: { request: { headerModifications: [{ action: 'add', name: 'X-Request-ID', value: '${requestId}' }], queryModifications: [] }, response: { headerModifications: [{ action: 'add', name: 'X-Response-Time', value: '${responseTime}ms' }] } },
-              validation: { enabled: true, requestValidation: { validateBody: true, validateHeaders: true, validateQueryParams: true, contentTypes: ['application/json'] }, responseValidation: { validateBody: false, validateHeaders: false } },
-              documentation: { summary: 'User management API', description: 'CRUD operations for users', tags: ['users'], operationId: 'users', deprecated: false },
-              enabled: true,
-              metadata: { createdAt: new Date(), createdBy: 'admin', updatedAt: new Date(), version: 1, owner: 'platform-team', team: 'platform' },
-            },
-            {
-              id: 'route-orders',
-              name: 'Orders API',
-              description: 'Order management endpoints',
-              path: '/api/v1/orders',
-              pathType: 'prefix',
-              methods: ['GET', 'POST', 'PUT'],
-              backends: [{ id: 'orders-svc', name: 'Orders Service', type: 'service', target: 'orders-service.default.svc:8080', weight: 100, healthCheck: { enabled: true, path: '/health', interval: 10, timeout: 5, healthyThreshold: 2, unhealthyThreshold: 3, expectedStatus: [200] } }],
-              middleware: ['auth', 'rate-limit', 'logging'],
-              transformations: { request: { headerModifications: [], queryModifications: [] }, response: { headerModifications: [] } },
-              validation: { enabled: true, requestValidation: { validateBody: true, validateHeaders: false, validateQueryParams: false, contentTypes: ['application/json'] }, responseValidation: { validateBody: false, validateHeaders: false } },
-              documentation: { summary: 'Order management API', description: 'Order processing', tags: ['orders'], operationId: 'orders', deprecated: false },
-              enabled: true,
-              metadata: { createdAt: new Date(), createdBy: 'admin', updatedAt: new Date(), version: 1, owner: 'commerce-team', team: 'commerce' },
-            },
-          ],
-          loadBalancing: { algorithm: 'round_robin', healthyOnly: true, stickySessions: { enabled: false, type: 'cookie', ttl: 3600 } },
-          trafficSplitting: { enabled: false, rules: [] },
-          canary: { enabled: false, weight: 0, backend: '', metrics: { errorRateThreshold: 5, latencyThreshold: 1000, autoRollback: true } },
-        },
-        middleware: [
-          { id: 'auth', name: 'Authentication', type: 'authentication', order: 1, config: {}, enabled: true },
-          { id: 'rate-limit', name: 'Rate Limiting', type: 'rate_limiting', order: 2, config: {}, enabled: true },
-          { id: 'logging', name: 'Request Logging', type: 'logging', order: 3, config: {}, enabled: true },
-          { id: 'metrics', name: 'Metrics Collection', type: 'metrics', order: 4, config: {}, enabled: true },
-        ],
-        monitoring: {
-          metrics: { enabled: true, provider: 'prometheus', endpoint: '/metrics', labels: { service: 'api-gateway', environment: gw.env }, histogramBuckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10], collectInterval: 15 },
-          tracing: { enabled: true, provider: 'jaeger', samplingRate: gw.env === 'production' ? 0.1 : 1.0, propagation: 'w3c', endpoint: 'http://jaeger:14268/api/traces' },
-          alerts: [
-            { id: 'high-error-rate', name: 'High Error Rate', description: 'Error rate exceeds threshold', metric: 'http_requests_total{status=~"5.."}', condition: { operator: 'gt', threshold: 5, duration: 300, aggregation: 'avg' }, severity: 'critical', channels: ['slack', 'pagerduty'], enabled: true },
-            { id: 'high-latency', name: 'High Latency', description: 'P95 latency exceeds threshold', metric: 'http_request_duration_seconds', condition: { operator: 'gt', threshold: 2, duration: 300, aggregation: 'avg' }, severity: 'high', channels: ['slack'], enabled: true },
-          ],
-          dashboards: [{ id: 'overview', name: 'Gateway Overview', description: 'Main gateway metrics', panels: [], refreshInterval: 30 }],
-        },
-        deployment: {
-          type: 'kubernetes',
-          strategy: { type: 'rolling', maxSurge: 1, maxUnavailable: 0, minReadySeconds: 10 },
-          history: [{ id: 'deploy-1', version: '1.5.0', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), status: 'success', changes: ['Updated rate limiting'], deployedBy: 'ci-system', duration: 120 }],
-          rollback: { enabled: true, automatic: true, threshold: 10, window: 300, keepVersions: 5 },
-          scaling: { enabled: true, minReplicas: gw.env === 'production' ? 3 : 1, maxReplicas: gw.env === 'production' ? 10 : 3, targetCPU: 70, targetMemory: 80, targetRPS: 1000, scaleUpStabilization: 60, scaleDownStabilization: 300 },
+          requireHttps: true,
+          validateOrigin: true,
+          allowedOrigins: ['https://alertaid.com', 'https://app.alertaid.com'],
         },
         documentation: {
-          openapi: { enabled: true, version: '3.0', path: '/openapi.json', info: { title: `${gw.name} API`, description: 'API documentation', version: 'v1', contact: { name: 'API Team', email: 'api@example.com' }, license: { name: 'MIT' } }, servers: [{ url: `https://${gw.domain}`, description: gw.env }], security: [{ type: 'http', name: 'bearerAuth', scheme: 'bearer' }] },
-          portal: { enabled: true, url: `https://docs.${gw.domain}`, theme: 'default', customization: {} },
+          enabled: true,
+          url: `https://docs.alertaid.com/${api.basePath.split('/')[3]}`,
         },
-        status: 'active',
-        metadata: { createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), createdBy: 'admin', updatedAt: new Date(), version: 15, owner: 'platform-team', team: 'platform', tags: ['api', gw.env], labels: { environment: gw.env, tier: 'edge' } },
+        metadata: {
+          createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          updatedAt: new Date(),
+          updatedBy: 'admin',
+          publishedAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+        },
       };
-      this.gateways.set(gateway.id, gateway);
+
+      // Add endpoints
+      const endpointTemplates = [
+        { path: '', method: 'GET', name: 'List', description: 'List all items' },
+        { path: '/{id}', method: 'GET', name: 'Get', description: 'Get item by ID' },
+        { path: '', method: 'POST', name: 'Create', description: 'Create new item' },
+        { path: '/{id}', method: 'PUT', name: 'Update', description: 'Update item' },
+        { path: '/{id}', method: 'DELETE', name: 'Delete', description: 'Delete item' },
+      ];
+
+      endpointTemplates.forEach((ep, epIdx) => {
+        const endpoint: ApiEndpoint = {
+          id: `endpoint-${idx}-${epIdx}`,
+          apiId: apiDef.id,
+          path: api.basePath + ep.path,
+          method: ep.method as HttpMethod,
+          name: `${ep.name} ${api.name.replace(' API', '')}`,
+          description: `${ep.description} in ${api.name}`,
+          status: 'active',
+          version: 'v1',
+          authentication: {
+            required: ep.method !== 'GET',
+            type: 'api_key',
+            scopes: ep.method === 'DELETE' ? ['admin'] : undefined,
+          },
+          rateLimit: {
+            enabled: true,
+            requests: ep.method === 'POST' ? 100 : 1000,
+            window: 3600,
+            strategy: 'sliding_window',
+            keyBy: 'api_key',
+          },
+          request: {
+            headers: [
+              { name: 'Content-Type', required: true, description: 'Content type header' },
+              { name: 'X-API-Key', required: true, description: 'API key for authentication' },
+            ],
+            queryParams: ep.method === 'GET' && !ep.path.includes('{id}') ? [
+              { name: 'page', type: 'integer', required: false, description: 'Page number' },
+              { name: 'limit', type: 'integer', required: false, description: 'Items per page' },
+              { name: 'sort', type: 'string', required: false, description: 'Sort field' },
+            ] : undefined,
+            pathParams: ep.path.includes('{id}') ? [
+              { name: 'id', type: 'string', description: 'Resource ID' },
+            ] : undefined,
+            body: ['POST', 'PUT', 'PATCH'].includes(ep.method) ? {
+              contentType: 'application/json',
+              schema: { type: 'object' },
+              example: { title: 'Example', description: 'Example description' },
+            } : undefined,
+          },
+          response: {
+            contentType: 'application/json',
+            statusCodes: [
+              { code: 200, description: 'Success', example: { success: true } },
+              { code: 400, description: 'Bad Request' },
+              { code: 401, description: 'Unauthorized' },
+              { code: 404, description: 'Not Found' },
+              { code: 500, description: 'Internal Server Error' },
+            ],
+          },
+          backend: {
+            type: 'http',
+            url: `http://backend.internal${api.basePath}${ep.path}`,
+            method: ep.method as HttpMethod,
+            timeout: 30000,
+            retries: 2,
+            circuitBreaker: {
+              enabled: true,
+              threshold: 5,
+              timeout: 60000,
+            },
+          },
+          transformation: {
+            request: [],
+            response: [],
+          },
+          validation: {
+            enabled: true,
+            validateRequest: true,
+            validateResponse: false,
+            strictMode: false,
+          },
+          caching: {
+            enabled: ep.method === 'GET',
+            ttl: 300,
+            keyParams: ['page', 'limit'],
+          },
+          cors: {
+            enabled: true,
+            allowedOrigins: ['*'],
+            allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+            exposeHeaders: ['X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+            maxAge: 86400,
+            credentials: true,
+          },
+          logging: {
+            enabled: true,
+            level: 'info',
+            includeRequestBody: true,
+            includeResponseBody: false,
+          },
+          tags: [api.name.toLowerCase().replace(' ', '-'), ep.method.toLowerCase()],
+          metadata: {
+            createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+            createdBy: 'admin',
+            updatedAt: new Date(),
+            updatedBy: 'admin',
+          },
+        };
+        apiDef.endpoints.push(endpoint);
+
+        // Initialize health check
+        this.healthChecks.set(endpoint.id, {
+          endpointId: endpoint.id,
+          status: 'healthy',
+          lastCheck: new Date(),
+          nextCheck: new Date(Date.now() + 60000),
+          consecutiveFailures: 0,
+          consecutiveSuccesses: 10,
+          latency: Math.floor(Math.random() * 100) + 50,
+        });
+
+        // Initialize circuit breaker
+        this.circuitBreakers.set(endpoint.id, {
+          endpointId: endpoint.id,
+          state: 'closed',
+          failures: 0,
+          successes: 100,
+          lastSuccess: new Date(),
+          threshold: 5,
+          halfOpenRequests: 0,
+        });
+      });
+
+      this.apis.set(apiDef.id, apiDef);
     });
 
-    // Initialize Consumers
-    const consumersData = [
-      { name: 'Mobile App', type: 'application' as const },
-      { name: 'Web Frontend', type: 'application' as const },
-      { name: 'Partner Integration', type: 'service' as const },
-      { name: 'Internal Service', type: 'service' as const },
+    // Initialize API keys
+    const apiKeysData = [
+      { name: 'Production Mobile App', owner: 'mobile-app' },
+      { name: 'Web Dashboard', owner: 'web-app' },
+      { name: 'Partner Integration', owner: 'partner-1' },
+      { name: 'Internal Service', owner: 'service-auth' },
+      { name: 'Testing Key', owner: 'qa-team' },
     ];
 
-    consumersData.forEach((c, idx) => {
-      const consumer: APIConsumer = {
-        id: `consumer-${(idx + 1).toString().padStart(4, '0')}`,
-        name: c.name,
-        description: `${c.name} API consumer`,
-        type: c.type,
-        credentials: {
-          apiKeys: [{ id: `key-${idx}`, key: `ak_${Math.random().toString(36).substr(2, 32)}`, name: 'Primary Key', createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), lastUsed: new Date(), scopes: ['read', 'write'], status: 'active' }],
-          oauth2Clients: c.type === 'application' ? [{ id: `oauth-${idx}`, clientId: `client_${idx}`, clientSecret: `secret_${Math.random().toString(36).substr(2, 32)}`, name: 'OAuth Client', grantTypes: ['authorization_code', 'refresh_token'], redirectUris: ['https://example.com/callback'], scopes: ['openid', 'profile', 'email'], status: 'active' }] : [],
-          certificates: [],
+    apiKeysData.forEach((ak, idx) => {
+      const apiKey: ApiKey = {
+        id: `key-${(idx + 1).toString().padStart(4, '0')}`,
+        name: ak.name,
+        key: `ak_live_${this.generateRandomString(32)}`,
+        prefix: 'ak_live_',
+        status: idx === 4 ? 'inactive' : 'active',
+        owner: {
+          type: idx < 2 ? 'application' : idx === 3 ? 'service' : 'user',
+          id: ak.owner,
+          name: ak.name,
         },
-        subscriptions: [{ id: `sub-${idx}`, apiId: 'gw-0001', planId: idx === 2 ? 'enterprise' : idx === 3 ? 'pro' : 'free', status: 'active', startDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), autoRenew: true }],
-        usage: { totalRequests: Math.floor(Math.random() * 1000000), successfulRequests: Math.floor(Math.random() * 950000), failedRequests: Math.floor(Math.random() * 50000), averageLatency: 45 + Math.random() * 100, bandwidthUsed: Math.floor(Math.random() * 10737418240), lastRequest: new Date(), topEndpoints: [{ endpoint: '/api/v1/users', count: 50000 }, { endpoint: '/api/v1/orders', count: 30000 }] },
-        quotas: [{ name: 'Daily Quota', limit: idx === 2 ? 1000000 : idx === 3 ? 100000 : 1000, used: Math.floor(Math.random() * 800), period: 'day', resetAt: new Date(Date.now() + 12 * 60 * 60 * 1000) }],
-        status: 'active',
-        metadata: { createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), createdBy: 'admin', updatedAt: new Date(), owner: 'api-team', contact: 'dev@example.com' },
+        permissions: {
+          apis: ['api-0001', 'api-0002', 'api-0003'],
+          endpoints: [],
+          scopes: idx === 0 || idx === 1 ? ['read', 'write'] : ['read'],
+        },
+        rateLimit: {
+          requests: idx < 2 ? 10000 : 1000,
+          window: 3600,
+        },
+        quota: {
+          enabled: true,
+          limit: idx < 2 ? 1000000 : 100000,
+          period: 'month',
+          used: Math.floor(Math.random() * 50000),
+          resetAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+        },
+        restrictions: {},
+        metadata: {
+          createdAt: new Date(Date.now() - (idx + 1) * 30 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          lastUsedAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+          usageCount: Math.floor(Math.random() * 100000),
+        },
       };
-      this.consumers.set(consumer.id, consumer);
+      this.apiKeys.set(apiKey.id, apiKey);
+    });
+
+    // Initialize plugins
+    const pluginsData = [
+      { name: 'Request Logger', type: 'logging', scope: 'global' },
+      { name: 'Rate Limiter', type: 'rate_limiting', scope: 'global' },
+      { name: 'CORS Handler', type: 'security', scope: 'global' },
+      { name: 'Response Cache', type: 'caching', scope: 'api' },
+      { name: 'JWT Validator', type: 'authentication', scope: 'endpoint' },
+    ];
+
+    pluginsData.forEach((p, idx) => {
+      const plugin: GatewayPlugin = {
+        id: `plugin-${(idx + 1).toString().padStart(4, '0')}`,
+        name: p.name,
+        type: p.type as GatewayPlugin['type'],
+        enabled: true,
+        priority: (idx + 1) * 10,
+        scope: p.scope as GatewayPlugin['scope'],
+        apiId: p.scope === 'api' ? 'api-0001' : undefined,
+        endpointId: p.scope === 'endpoint' ? 'endpoint-0-0' : undefined,
+        config: {},
+        metadata: {
+          createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+          updatedAt: new Date(),
+        },
+      };
+      this.plugins.set(plugin.id, plugin);
+    });
+
+    // Initialize sample request logs
+    for (let i = 0; i < 50; i++) {
+      const apiIdx = i % 5;
+      const endpointIdx = i % 5;
+      const log: RequestLog = {
+        id: `log-${(i + 1).toString().padStart(6, '0')}`,
+        requestId: this.generateRandomString(16),
+        timestamp: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+        apiId: `api-${(apiIdx + 1).toString().padStart(4, '0')}`,
+        endpointId: `endpoint-${apiIdx}-${endpointIdx}`,
+        path: `/api/v1/${['alerts', 'shelters', 'resources', 'users', 'analytics'][apiIdx]}`,
+        method: ['GET', 'POST', 'PUT', 'DELETE'][i % 4] as HttpMethod,
+        clientIp: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+        userAgent: 'Mozilla/5.0 (compatible; AlertAid/1.0)',
+        apiKeyId: `key-${((i % 5) + 1).toString().padStart(4, '0')}`,
+        request: {
+          headers: { 'Content-Type': 'application/json' },
+          queryParams: {},
+          size: Math.floor(Math.random() * 1000),
+        },
+        response: {
+          statusCode: [200, 200, 200, 201, 400, 401, 404, 500][i % 8],
+          headers: { 'Content-Type': 'application/json' },
+          size: Math.floor(Math.random() * 5000),
+        },
+        latency: {
+          total: Math.floor(Math.random() * 500) + 50,
+          gateway: Math.floor(Math.random() * 20),
+          backend: Math.floor(Math.random() * 400) + 30,
+        },
+        cache: {
+          hit: Math.random() > 0.7,
+        },
+        rateLimit: {
+          remaining: Math.floor(Math.random() * 1000),
+          limit: 1000,
+          reset: new Date(Date.now() + 3600000),
+        },
+        tags: [],
+      };
+      this.requestLogs.push(log);
+    }
+
+    // Initialize rate limits
+    for (let i = 0; i < 10; i++) {
+      const info: RateLimitInfo = {
+        key: `rl-${this.generateRandomString(8)}`,
+        identifier: `key-${((i % 5) + 1).toString().padStart(4, '0')}`,
+        requests: Math.floor(Math.random() * 500),
+        limit: 1000,
+        remaining: Math.floor(Math.random() * 1000),
+        window: 3600,
+        resetAt: new Date(Date.now() + Math.random() * 3600000),
+        blocked: Math.random() > 0.95,
+      };
+      this.rateLimits.set(info.key, info);
+    }
+  }
+
+  /**
+   * Generate random string
+   */
+  private generateRandomString(length: number): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  }
+
+  /**
+   * Process request
+   */
+  public async processRequest(request: ApiRequest): Promise<ApiResponse> {
+    const startTime = Date.now();
+
+    try {
+      // Find matching endpoint
+      const endpoint = this.findEndpoint(request.path, request.method);
+      if (!endpoint) {
+        return this.createErrorResponse(request.id, 404, 'NOT_FOUND', 'Endpoint not found', startTime);
+      }
+
+      if (!endpoint.isEnabled) {
+        return this.createErrorResponse(request.id, 503, 'SERVICE_UNAVAILABLE', 'Endpoint is disabled', startTime);
+      }
+
+      // Check circuit breaker
+      const service = this.services.get(endpoint.service);
+      if (service) {
+        const circuitBreaker = this.circuitBreakers.get(endpoint.service);
+        if (circuitBreaker?.state === 'open') {
+          return this.createErrorResponse(request.id, 503, 'CIRCUIT_OPEN', 'Service temporarily unavailable', startTime);
+        }
+      }
+
+      // Authenticate
+      if (endpoint.authType !== 'none') {
+        const authResult = await this.authenticate(request, endpoint);
+        if (!authResult.success) {
+          return this.createErrorResponse(request.id, 401, 'UNAUTHORIZED', authResult.error || 'Authentication failed', startTime);
+        }
+      }
+
+      // Check rate limit
+      if (endpoint.rateLimit) {
+        const rateLimitResult = this.checkRateLimit(request, endpoint.rateLimit);
+        if (rateLimitResult.exceeded) {
+          return this.createErrorResponse(request.id, 429, 'RATE_LIMIT_EXCEEDED', 'Rate limit exceeded', startTime, {
+            'X-RateLimit-Limit': String(rateLimitResult.limit),
+            'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+            'X-RateLimit-Reset': rateLimitResult.reset.toISOString(),
+            'Retry-After': String(rateLimitResult.retryAfter || 60),
+          });
+        }
+      }
+
+      // Check cache
+      if (endpoint.caching?.enabled) {
+        const cachedResponse = this.checkCache(request, endpoint);
+        if (cachedResponse) {
+          return { ...cachedResponse, cached: true, latency: Date.now() - startTime };
+        }
+      }
+
+      // Execute request (mock)
+      const response = await this.executeRequest(request, endpoint);
+
+      // Log request
+      this.logRequest(request, response, endpoint);
+
+      return response;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+      return this.createErrorResponse(request.id, 500, 'INTERNAL_ERROR', errorMessage, startTime);
+    }
+  }
+
+  /**
+   * Find endpoint
+   */
+  private findEndpoint(path: string, method: HttpMethod): ApiEndpoint | undefined {
+    return Array.from(this.endpoints.values()).find((ep) => {
+      if (ep.method !== method) return false;
+      const pattern = ep.path.replace(/:[^/]+/g, '[^/]+');
+      const regex = new RegExp(`^${pattern}$`);
+      return regex.test(path);
     });
   }
 
-  // Gateway Operations
-  public getGateways(): APIGateway[] {
-    return Array.from(this.gateways.values());
+  /**
+   * Authenticate request
+   */
+  private async authenticate(request: ApiRequest, endpoint: ApiEndpoint): Promise<{ success: boolean; error?: string }> {
+    switch (endpoint.authType) {
+      case 'api_key':
+        const apiKeyHeader = request.headers['x-api-key'];
+        if (!apiKeyHeader) return { success: false, error: 'API key required' };
+        const apiKey = Array.from(this.apiKeys.values()).find((k) => k.key === apiKeyHeader);
+        if (!apiKey) return { success: false, error: 'Invalid API key' };
+        if (apiKey.status !== 'active') return { success: false, error: 'API key is not active' };
+        if (apiKey.expiresAt && apiKey.expiresAt < new Date()) return { success: false, error: 'API key expired' };
+        apiKey.lastUsedAt = new Date();
+        apiKey.usageCount++;
+        return { success: true };
+
+      case 'bearer':
+        const authHeader = request.headers['authorization'];
+        if (!authHeader?.startsWith('Bearer ')) return { success: false, error: 'Bearer token required' };
+        // In production, validate JWT token
+        return { success: true };
+
+      case 'basic':
+        const basicAuth = request.headers['authorization'];
+        if (!basicAuth?.startsWith('Basic ')) return { success: false, error: 'Basic auth required' };
+        return { success: true };
+
+      default:
+        return { success: true };
+    }
   }
 
-  public getGatewayById(id: string): APIGateway | undefined {
-    return this.gateways.get(id);
-  }
+  /**
+   * Check rate limit
+   */
+  private checkRateLimit(request: ApiRequest, config: RateLimitConfig): RateLimitInfo {
+    const key = this.getRateLimitKey(request, config);
+    const now = new Date();
+    const windowMs = config.window * 1000;
 
-  public getRoutes(gatewayId: string): Route[] {
-    const gateway = this.gateways.get(gatewayId);
-    return gateway?.routing.routes || [];
-  }
+    let bucket = this.rateLimitBuckets.get(key);
+    if (!bucket || bucket.resetAt < now) {
+      bucket = { count: 0, resetAt: new Date(now.getTime() + windowMs) };
+    }
 
-  // Consumer Operations
-  public getConsumers(): APIConsumer[] {
-    return Array.from(this.consumers.values());
-  }
+    bucket.count++;
+    this.rateLimitBuckets.set(key, bucket);
 
-  public getConsumerById(id: string): APIConsumer | undefined {
-    return this.consumers.get(id);
-  }
-
-  // Statistics
-  public getStatistics(gatewayId?: string): GatewayStatistics {
-    const requests = Math.floor(Math.random() * 10000000);
-    const errors = Math.floor(requests * 0.02);
+    const remaining = Math.max(0, config.limit - bucket.count);
+    const exceeded = bucket.count > config.limit;
 
     return {
-      overview: {
-        totalRequests: requests,
-        successfulRequests: requests - errors,
-        failedRequests: errors,
-        averageLatency: 45,
-        p50Latency: 35,
-        p95Latency: 120,
-        p99Latency: 250,
-        errorRate: 2.0,
-        throughput: 5000,
+      limit: config.limit,
+      remaining,
+      reset: bucket.resetAt,
+      retryAfter: exceeded ? Math.ceil((bucket.resetAt.getTime() - now.getTime()) / 1000) : undefined,
+      exceeded,
+    };
+  }
+
+  /**
+   * Get rate limit key
+   */
+  private getRateLimitKey(request: ApiRequest, config: RateLimitConfig): string {
+    switch (config.keyGenerator) {
+      case 'api_key':
+        return `rl:${request.auth?.apiKeyId || 'anonymous'}`;
+      case 'user':
+        return `rl:${request.auth?.userId || 'anonymous'}`;
+      case 'custom':
+        return `rl:${request.headers[config.customKeyHeader || 'x-client-id'] || 'anonymous'}`;
+      default:
+        return `rl:${request.clientIP}`;
+    }
+  }
+
+  /**
+   * Check cache
+   */
+  private checkCache(request: ApiRequest, endpoint: ApiEndpoint): ApiResponse | null {
+    // In production, check actual cache
+    return null;
+  }
+
+  /**
+   * Execute request
+   */
+  private async executeRequest(request: ApiRequest, endpoint: ApiEndpoint): Promise<ApiResponse> {
+    const startTime = Date.now();
+
+    // Simulate latency
+    await new Promise((resolve) => setTimeout(resolve, Math.random() * 100 + 20));
+
+    return {
+      requestId: request.id,
+      statusCode: 200,
+      headers: {
+        'content-type': 'application/json',
+        'x-request-id': request.id,
       },
-      byStatus: { 200: Math.floor(requests * 0.85), 201: Math.floor(requests * 0.05), 400: Math.floor(requests * 0.05), 401: Math.floor(requests * 0.02), 404: Math.floor(requests * 0.02), 500: Math.floor(requests * 0.01) },
-      byMethod: { GET: Math.floor(requests * 0.6), POST: Math.floor(requests * 0.25), PUT: Math.floor(requests * 0.1), DELETE: Math.floor(requests * 0.03), PATCH: Math.floor(requests * 0.02), HEAD: 0, OPTIONS: 0 },
-      byRoute: [{ route: '/api/v1/users', requests: Math.floor(requests * 0.4), latency: 40, errors: Math.floor(errors * 0.3) }, { route: '/api/v1/orders', requests: Math.floor(requests * 0.35), latency: 55, errors: Math.floor(errors * 0.4) }],
-      byConsumer: Array.from(this.consumers.values()).map((c) => ({ consumer: c.name, requests: c.usage.totalRequests, quota: c.quotas[0]?.limit || 0 })),
-      security: { blockedRequests: Math.floor(requests * 0.001), authFailures: Math.floor(requests * 0.005), rateLimitExceeded: Math.floor(requests * 0.002), wafBlocked: Math.floor(requests * 0.001) },
-      health: { uptime: 99.99, healthyBackends: 8, unhealthyBackends: 0, circuitBreakerTrips: 2 },
+      body: { success: true, data: {} },
+      latency: Date.now() - startTime,
+      cached: false,
+      retried: 0,
+      timestamp: new Date(),
     };
   }
 
-  // Event Handling
+  /**
+   * Create error response
+   */
+  private createErrorResponse(
+    requestId: string,
+    statusCode: number,
+    code: string,
+    message: string,
+    startTime: number,
+    headers: Record<string, string> = {}
+  ): ApiResponse {
+    return {
+      requestId,
+      statusCode,
+      headers: {
+        'content-type': 'application/json',
+        'x-request-id': requestId,
+        ...headers,
+      },
+      body: { error: { code, message } },
+      latency: Date.now() - startTime,
+      cached: false,
+      retried: 0,
+      error: { code, message, retryable: statusCode >= 500 },
+      timestamp: new Date(),
+    };
+  }
+
+  /**
+   * Log request
+   */
+  private logRequest(request: ApiRequest, response: ApiResponse, endpoint: ApiEndpoint): void {
+    const log: RequestLog = {
+      id: `log-${Date.now()}`,
+      request: { ...request, body: undefined },
+      response: { ...response, body: undefined },
+      requestBodySize: 0,
+      responseBodySize: 0,
+      duration: response.latency,
+      endpoint: endpoint.id,
+      apiKeyId: request.auth?.apiKeyId,
+      userId: request.auth?.userId,
+      tags: [endpoint.service, endpoint.method],
+    };
+
+    this.requestLogs.push(log);
+    if (this.requestLogs.length > 100000) {
+      this.requestLogs = this.requestLogs.slice(-50000);
+    }
+
+    this.emit('request_logged', log);
+   * Get APIs
+   */
+  public getApis(filter?: { status?: ApiStatus }): ApiDefinition[] {
+    let apis = Array.from(this.apis.values());
+    if (filter?.status) apis = apis.filter((a) => a.status === filter.status);
+    return apis.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /**
+   * Get API
+   */
+  public getApi(id: string): ApiDefinition | undefined {
+    return this.apis.get(id);
+  }
+
+  /**
+   * Get endpoints
+   */
+  public getEndpoints(apiId?: string): ApiEndpoint[] {
+    const apis = Array.from(this.apis.values());
+    if (apiId) {
+      const api = this.apis.get(apiId);
+      return api ? api.endpoints : [];
+    }
+    return apis.flatMap((a) => a.endpoints);
+  }
+
+  /**
+   * Get endpoint
+   */
+  public getEndpoint(id: string): ApiEndpoint | undefined {
+    for (const api of this.apis.values()) {
+      const endpoint = api.endpoints.find((e) => e.id === id);
+      if (endpoint) return endpoint;
+    }
+    return undefined;
+  }
+
+  /**
+   * Get API keys
+   */
+  public getApiKeys(filter?: { status?: ApiKey['status'] }): ApiKey[] {
+    let keys = Array.from(this.apiKeys.values());
+    if (filter?.status) keys = keys.filter((k) => k.status === filter.status);
+    return keys;
+  }
+
+  /**
+   * Get API key
+   */
+  public getApiKey(id: string): ApiKey | undefined {
+    return this.apiKeys.get(id);
+  }
+
+  /**
+   * Create API key
+   */
+  public async createApiKey(data: {
+    name: string;
+    description?: string;
+    ownerId: string;
+    ownerType: ApiKey['ownerType'];
+    permissions: string[];
+    expiresAt?: Date;
+    rateLimit?: RateLimitConfig;
+    allowedOrigins?: string[];
+    allowedIPs?: string[];
+  }): Promise<ApiKey> {
+    const id = `key-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
+    const key = `ak_${this.generateRandomString(32)}`;
+
+    const apiKey: ApiKey = {
+      id,
+      key,
+      keyHash: Buffer.from(key).toString('base64'),
+      name: data.name,
+      description: data.description,
+      ownerId: data.ownerId,
+      ownerType: data.ownerType,
+      status: 'active',
+      permissions: data.permissions,
+      rateLimit: data.rateLimit,
+      allowedOrigins: data.allowedOrigins,
+      allowedIPs: data.allowedIPs,
+      expiresAt: data.expiresAt,
+      usageCount: 0,
+      metadata: {},
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.apiKeys.set(id, apiKey);
+  public createApiKey(data: {
+    name: string;
+    owner: ApiKey['owner'];
+    permissions: ApiKey['permissions'];
+    rateLimit: ApiKey['rateLimit'];
+    expiresIn?: number;
+    creator: string;
+  }): ApiKey {
+    const apiKey: ApiKey = {
+      id: `key-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      name: data.name,
+      key: `ak_live_${this.generateRandomString(32)}`,
+      prefix: 'ak_live_',
+      status: 'active',
+      owner: data.owner,
+      permissions: data.permissions,
+      rateLimit: data.rateLimit,
+      quota: {
+        enabled: true,
+        limit: 100000,
+        period: 'month',
+        used: 0,
+        resetAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+      restrictions: {},
+      metadata: {
+        createdAt: new Date(),
+        createdBy: data.creator,
+        expiresAt: data.expiresIn ? new Date(Date.now() + data.expiresIn) : undefined,
+        usageCount: 0,
+      },
+    };
+
+    this.apiKeys.set(apiKey.id, apiKey);
+    this.emit('api_key_created', apiKey);
+
+    return apiKey;
+  }
+
+  /**
+   * Revoke API key
+   */
+  public revokeApiKey(keyId: string): boolean {
+    const apiKey = this.apiKeys.get(keyId);
+    if (!apiKey) return false;
+
+    apiKey.status = 'revoked';
+    apiKey.updatedAt = new Date();
+
+    this.emit('api_key_revoked', apiKey);
+    return true;
+  }
+
+  /**
+   * Get API keys
+   */
+  public getApiKeys(ownerId?: string): ApiKey[] {
+    let keys = Array.from(this.apiKeys.values());
+    if (ownerId) {
+      keys = keys.filter((k) => k.ownerId === ownerId);
+    }
+    return keys.map((k) => ({ ...k, key: `${k.key.substr(0, 8)}...` })); // Mask key
+  }
+
+  /**
+   * Register endpoint
+   */
+  public registerEndpoint(data: Omit<ApiEndpoint, 'id' | 'createdAt' | 'updatedAt'>): ApiEndpoint {
+    const id = `ep-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
+    const endpoint: ApiEndpoint = {
+      ...data,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.endpoints.set(id, endpoint);
+    this.emit('endpoint_registered', endpoint);
+
+    return endpoint;
+  }
+
+  /**
+   * Get endpoints
+   */
+  public getEndpoints(service?: string): ApiEndpoint[] {
+    let endpoints = Array.from(this.endpoints.values());
+    if (service) {
+      endpoints = endpoints.filter((e) => e.service === service);
+    }
+    return endpoints;
+  }
+
+  /**
+   * Get service health
+   */
+  public getServiceHealth(serviceName?: string): ServiceHealth[] {
+    if (serviceName) {
+      const health = this.services.get(serviceName);
+      return health ? [health] : [];
+    }
+    return Array.from(this.services.values());
+  public revokeApiKey(id: string): void {
+    const apiKey = this.apiKeys.get(id);
+    if (!apiKey) throw new Error('API key not found');
+
+    apiKey.status = 'revoked';
+    this.emit('api_key_revoked', apiKey);
+  }
+
+  /**
+   * Validate API key
+   */
+  public validateApiKey(key: string): { valid: boolean; apiKey?: ApiKey; error?: string } {
+    for (const apiKey of this.apiKeys.values()) {
+      if (apiKey.key === key) {
+        if (apiKey.status !== 'active') {
+          return { valid: false, error: `API key is ${apiKey.status}` };
+        }
+        if (apiKey.metadata.expiresAt && apiKey.metadata.expiresAt < new Date()) {
+          return { valid: false, error: 'API key has expired' };
+        }
+        return { valid: true, apiKey };
+      }
+    }
+    return { valid: false, error: 'Invalid API key' };
+  }
+
+  /**
+   * Check rate limit
+   */
+  public checkRateLimit(identifier: string, limit: number, window: number): RateLimitInfo {
+    const key = `rl-${identifier}`;
+    let info = this.rateLimits.get(key);
+
+    if (!info || info.resetAt < new Date()) {
+      info = {
+        key,
+        identifier,
+        requests: 0,
+        limit,
+        remaining: limit,
+        window,
+        resetAt: new Date(Date.now() + window * 1000),
+        blocked: false,
+      };
+    }
+
+    info.requests++;
+    info.remaining = Math.max(0, info.limit - info.requests);
+    info.blocked = info.remaining === 0;
+
+    if (info.blocked) {
+      info.blockedUntil = info.resetAt;
+    }
+
+    this.rateLimits.set(key, info);
+    return info;
+  }
+
+  /**
+   * Get request logs
+   */
+  public getRequestLogs(filter?: {
+    apiId?: string;
+    endpointId?: string;
+    statusCode?: number[];
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+  }): RequestLog[] {
+    let logs = [...this.requestLogs];
+
+    if (filter?.apiId) logs = logs.filter((l) => l.apiId === filter.apiId);
+    if (filter?.endpointId) logs = logs.filter((l) => l.endpointId === filter.endpointId);
+    if (filter?.statusCode?.length) logs = logs.filter((l) => filter.statusCode!.includes(l.response.statusCode));
+    if (filter?.startDate) logs = logs.filter((l) => l.timestamp >= filter.startDate!);
+    if (filter?.endDate) logs = logs.filter((l) => l.timestamp <= filter.endDate!);
+
+    logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+    if (filter?.limit) logs = logs.slice(0, filter.limit);
+
+    return logs;
+  }
+
+  /**
+   * Get metrics
+   */
+  public getMetrics(period: { start: Date; end: Date }): ApiMetrics {
+    const periodLogs = this.requestLogs.filter(
+      (log) => log.request.timestamp >= period.start && log.request.timestamp <= period.end
+    );
+
+    const latencies = periodLogs.map((l) => l.duration).sort((a, b) => a - b);
+    const successLogs = periodLogs.filter((l) => l.response.statusCode < 400);
+    const cachedLogs = periodLogs.filter((l) => l.response.cached);
+
+    const byStatusCode = new Map<number, number>();
+    const byEndpoint = new Map<string, { count: number; totalLatency: number }>();
+    const byMethod = new Map<HttpMethod, number>();
+    const byClient = new Map<string, number>();
+
+    periodLogs.forEach((log) => {
+      byStatusCode.set(log.response.statusCode, (byStatusCode.get(log.response.statusCode) || 0) + 1);
+
+      if (log.endpoint) {
+        const ep = byEndpoint.get(log.endpoint) || { count: 0, totalLatency: 0 };
+        ep.count++;
+        ep.totalLatency += log.duration;
+        byEndpoint.set(log.endpoint, ep);
+      }
+
+      byMethod.set(log.request.method, (byMethod.get(log.request.method) || 0) + 1);
+
+      const clientId = log.apiKeyId || log.userId || log.request.clientIP;
+      byClient.set(clientId, (byClient.get(clientId) || 0) + 1);
+    });
+
+    const durationMs = period.end.getTime() - period.start.getTime();
+    const durationSeconds = durationMs / 1000;
+
+    return {
+      period,
+      totalRequests: periodLogs.length,
+      successfulRequests: successLogs.length,
+      failedRequests: periodLogs.length - successLogs.length,
+      avgLatency: latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0,
+      p50Latency: latencies[Math.floor(latencies.length * 0.5)] || 0,
+      p95Latency: latencies[Math.floor(latencies.length * 0.95)] || 0,
+      p99Latency: latencies[Math.floor(latencies.length * 0.99)] || 0,
+      requestsPerSecond: periodLogs.length / durationSeconds,
+      bytesIn: periodLogs.reduce((sum, l) => sum + l.requestBodySize, 0),
+      bytesOut: periodLogs.reduce((sum, l) => sum + l.responseBodySize, 0),
+      cacheHitRate: periodLogs.length > 0 ? (cachedLogs.length / periodLogs.length) * 100 : 0,
+      rateLimitExceeded: periodLogs.filter((l) => l.response.statusCode === 429).length,
+      byStatusCode: Array.from(byStatusCode.entries()).map(([code, count]) => ({ code, count })),
+      byEndpoint: Array.from(byEndpoint.entries()).map(([endpoint, data]) => ({
+        endpoint,
+        count: data.count,
+        avgLatency: data.totalLatency / data.count,
+      })),
+      byMethod: Array.from(byMethod.entries()).map(([method, count]) => ({ method, count })),
+      byClient: Array.from(byClient.entries())
+        .map(([clientId, count]) => ({ clientId, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10),
+    };
+  }
+
+  /**
+   * Get request logs
+   */
+  public getRequestLogs(filters?: {
+    endpoint?: string;
+    method?: HttpMethod;
+    statusCode?: number;
+    clientIP?: string;
+    dateRange?: { start: Date; end: Date };
+  }, page: number = 1, pageSize: number = 50): { logs: RequestLog[]; total: number } {
+    let logs = [...this.requestLogs];
+
+    if (filters?.endpoint) {
+      logs = logs.filter((l) => l.endpoint === filters.endpoint);
+    }
+
+    if (filters?.method) {
+      logs = logs.filter((l) => l.request.method === filters.method);
+    }
+
+    if (filters?.statusCode) {
+      logs = logs.filter((l) => l.response.statusCode === filters.statusCode);
+    }
+
+    if (filters?.clientIP) {
+      logs = logs.filter((l) => l.request.clientIP === filters.clientIP);
+    }
+
+    if (filters?.dateRange) {
+      logs = logs.filter((l) =>
+        l.request.timestamp >= filters.dateRange!.start && l.request.timestamp <= filters.dateRange!.end
+      );
+    }
+
+    logs.sort((a, b) => b.request.timestamp.getTime() - a.request.timestamp.getTime());
+
+    const total = logs.length;
+    const startIndex = (page - 1) * pageSize;
+
+    return {
+      logs: logs.slice(startIndex, startIndex + pageSize),
+      total,
+    };
+  }
+
+  /**
+   * Get config
+   */
+  public getConfig(): GatewayConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Update config
+   */
+  public updateConfig(updates: Partial<GatewayConfig>): void {
+    this.config = { ...this.config, ...updates };
+    this.emit('config_updated', this.config);
+  public getMetrics(period: { start: Date; end: Date }): GatewayMetrics {
+    const logs = this.requestLogs.filter(
+      (l) => l.timestamp >= period.start && l.timestamp <= period.end
+    );
+
+    const totalRequests = logs.length;
+    const successfulRequests = logs.filter((l) => l.response.statusCode < 400).length;
+    const failedRequests = totalRequests - successfulRequests;
+
+    const latencies = logs.map((l) => l.latency.total).sort((a, b) => a - b);
+    const averageLatency = latencies.length > 0
+      ? latencies.reduce((a, b) => a + b, 0) / latencies.length
+      : 0;
+
+    const byStatusCode: Record<string, number> = {};
+    logs.forEach((l) => {
+      const code = l.response.statusCode.toString();
+      byStatusCode[code] = (byStatusCode[code] || 0) + 1;
+    });
+
+    const byEndpoint: { endpointId: string; path: string; requests: number; avgLatency: number }[] = [];
+    const endpointGroups = new Map<string, RequestLog[]>();
+    logs.forEach((l) => {
+      const existing = endpointGroups.get(l.endpointId) || [];
+      existing.push(l);
+      endpointGroups.set(l.endpointId, existing);
+    });
+
+    endpointGroups.forEach((eLogs, endpointId) => {
+      const avgLat = eLogs.reduce((a, b) => a + b.latency.total, 0) / eLogs.length;
+      byEndpoint.push({
+        endpointId,
+        path: eLogs[0]?.path || '',
+        requests: eLogs.length,
+        avgLatency: avgLat,
+      });
+    });
+
+    return {
+      period,
+      totalRequests,
+      successfulRequests,
+      failedRequests,
+      averageLatency,
+      p50Latency: latencies[Math.floor(latencies.length * 0.5)] || 0,
+      p95Latency: latencies[Math.floor(latencies.length * 0.95)] || 0,
+      p99Latency: latencies[Math.floor(latencies.length * 0.99)] || 0,
+      byStatusCode,
+      byEndpoint: byEndpoint.slice(0, 10),
+      byApiKey: [],
+      cacheHitRate: logs.filter((l) => l.cache.hit).length / (totalRequests || 1),
+      rateLimitExceeded: byStatusCode['429'] || 0,
+      authFailures: byStatusCode['401'] || 0,
+      errors: [],
+      bandwidth: {
+        inbound: logs.reduce((a, b) => a + b.request.size, 0),
+        outbound: logs.reduce((a, b) => a + b.response.size, 0),
+      },
+    };
+  }
+
+  /**
+   * Get health checks
+   */
+  public getHealthChecks(): HealthCheck[] {
+    return Array.from(this.healthChecks.values());
+  }
+
+  /**
+   * Get circuit breaker states
+   */
+  public getCircuitBreakerStates(): CircuitBreakerState[] {
+    return Array.from(this.circuitBreakers.values());
+  }
+
+  /**
+   * Get plugins
+   */
+  public getPlugins(): GatewayPlugin[] {
+    return Array.from(this.plugins.values())
+      .sort((a, b) => a.priority - b.priority);
+  }
+
+  /**
+   * Subscribe to events
+   */
   public subscribe(callback: (event: string, data: unknown) => void): () => void {
-    this.eventListeners.push(callback);
+    this.listeners.push(callback);
     return () => {
-      const index = this.eventListeners.indexOf(callback);
-      if (index > -1) this.eventListeners.splice(index, 1);
+      const index = this.listeners.indexOf(callback);
+      if (index > -1) this.listeners.splice(index, 1);
     };
   }
 
+  /**
+   * Emit event
+   */
   private emit(event: string, data: unknown): void {
-    this.eventListeners.forEach((callback) => callback(event, data));
+    this.listeners.forEach((callback) => callback(event, data));
   }
 }
 
-export const apiGatewayService = APIGatewayService.getInstance();
+export const apiGatewayService = ApiGatewayService.getInstance();
 export type {
-  APIProtocol,
-  HTTPMethod,
-  APIStatus,
-  AuthenticationType,
-  RateLimitUnit,
-  APIGateway,
-  GatewayEnvironment,
-  ResourceAllocation,
-  GatewayConfiguration,
-  TimeoutConfig,
-  RetryConfig,
-  BackoffConfig,
-  CircuitBreakerConfig,
-  CORSConfig,
-  CompressionConfig,
-  RequestSizeConfig,
-  LoggingConfig,
-  CachingConfig,
-  GatewaySecurity,
-  AuthenticationConfig,
-  AuthProvider,
-  AuthProviderConfig,
-  ValidationRule,
-  AuthorizationConfig,
-  AuthPolicy,
-  PolicyRule,
-  PolicyCondition,
+  HttpMethod,
+  ApiStatus,
+  RateLimitStrategy,
+  AuthType,
+  ApiKeyStatus,
+  RequestPriority,
+  ApiEndpoint,
   RateLimitConfig,
-  RateLimit,
-  RateLimitPlan,
-  Quota,
-  IPFilterConfig,
-  IPFilterRule,
-  GeoBlockingConfig,
-  WAFConfig,
-  WAFRuleset,
-  WAFRule,
-  EncryptionConfig,
-  MTLSConfig,
-  GatewayRouting,
+  CacheConfig,
+  ValidationConfig,
+  TransformConfig,
+  CorsConfig,
+  EndpointDocumentation,
+  ParameterDoc,
+  RequestBodyDoc,
+  ResponseDoc,
+  ExampleDoc,
+  ApiKey,
+  ApiRequest,
+  RequestAuth,
+  ApiResponse,
+  ApiError,
+  RateLimitInfo,
+  ServiceHealth,
+  ServiceInstance,
   Route,
-  RouteBackend,
-  HealthCheckConfig,
-  RouteTransformation,
-  RequestTransformation,
-  PathRewrite,
-  HeaderModification,
-  QueryModification,
-  BodyTransformation,
-  ResponseTransformation,
-  RouteValidation,
-  RequestValidation,
-  ResponseValidation,
-  RouteDocumentation,
-  RouteMetadata,
-  LoadBalancingConfig,
-  StickySessionConfig,
-  TrafficSplitConfig,
-  TrafficSplitRule,
-  CanaryConfig,
-  CanaryMetrics,
-  GatewayMiddleware,
-  MiddlewareType,
-  GatewayMonitoring,
-  MetricsConfig,
-  TracingConfig,
-  AlertConfig,
-  AlertCondition,
-  DashboardConfig,
-  DashboardPanel,
-  GatewayDeployment,
-  DeploymentStrategy,
-  DeploymentHistory,
-  RollbackConfig,
-  ScalingConfig,
-  GatewayDocumentation,
-  OpenAPIConfig,
-  APIInfo,
-  APIServer,
-  SecurityScheme,
-  AsyncAPIConfig,
-  PortalConfig,
-  GatewayMetadata,
-  APIConsumer,
-  ConsumerCredentials,
-  APIKey,
-  OAuth2Client,
-  Subscription,
-  ConsumerUsage,
-  ConsumerQuota,
-  ConsumerMetadata,
-  GatewayStatistics,
+  RouteTarget,
+  RouteCondition,
+  CircuitBreakerConfig,
+  CircuitBreakerState,
+  ApiMetrics,
+  WebhookConfig,
+  WebhookDelivery,
+  RequestLog,
+  GatewayConfig,
+  AuthType,
+  RateLimitStrategy,
+  ApiEndpoint,
+  TransformRule,
+  ApiDefinition,
+  ApiKey,
+  RequestLog,
+  RateLimitInfo,
+  CircuitBreakerState,
+  GatewayMetrics,
+  HealthCheck,
+  GatewayPlugin,
 };

@@ -453,7 +453,7 @@ class ServiceMeshService {
           serviceId: service.id,
           host: `${s.name}-${i + 1}.mesh.local`,
           port: 8080 + i,
-          status: i === 0 ? 'healthy' : ['healthy', 'healthy', 'degraded'][i % 3],
+          status: i === 0 ? 'healthy' : (['healthy', 'healthy', 'degraded'][i % 3] as ServiceStatus),
           metadata: {
             version: `1.${idx}.${i}`,
             zone: ['zone-a', 'zone-b', 'zone-c'][i % 3],

@@ -5,9 +5,9 @@ import {
   SkeletonAlertCard, 
   SkeletonMap, 
   SkeletonList,
-  SkeletonChart,
-  SkeletonText as SkeletonTextBase,
-  SkeletonCard as SkeletonCardBase
+  SkeletonChart as OriginalSkeletonChart,
+  SkeletonText as OriginalSkeletonText,
+  SkeletonCard as OriginalSkeletonCard
 } from '../../styles/SkeletonLoader';
 
 // Enhanced Skeleton Loading Animations
@@ -53,7 +53,18 @@ const SkeletonBase = styled.div<{ width?: string; height?: string; borderRadius?
   height: ${({ height }) => height || '1rem'};
 `;
 
-export const SkeletonText = styled(SkeletonBase)`
+
+
+
+
+
+
+export const SkeletonButton = styled(SkeletonBase)`
+  height: 2.5rem;
+  width: 8rem;
+`;
+
+export const SkeletonText = styled(OriginalSkeletonText)`
   height: 1rem;
   margin-bottom: 0.5rem;
   
@@ -63,20 +74,15 @@ export const SkeletonText = styled(SkeletonBase)`
   }
 `;
 
-export const SkeletonCard = styled(SkeletonBase)`
+export const SkeletonCard = styled(OriginalSkeletonCard)`
   height: 8rem;
   width: 100%;
   margin-bottom: 1rem;
 `;
 
-export const SkeletonChart = styled(SkeletonBase)`
-  height: 12rem;
-  width: 100%;
-`;
-
-export const SkeletonButton = styled(SkeletonBase)`
-  height: 2.5rem;
-  width: 8rem;
+// Customized skeleton components with specific sizes
+export const CustomSkeletonChart = styled(OriginalSkeletonChart)`
+  height: ${props => props.$height || '12rem'};
 `;
 
 // Pulse Loaders
@@ -231,8 +237,8 @@ export const SkeletonDashboard: React.FC = () => (
   <div style={{ padding: '24px' }}>
     {/* Header skeleton */}
     <div style={{ marginBottom: '32px' }}>
-      <SkeletonTextBase $width="40%" $height="36px" />
-      <SkeletonTextBase $width="60%" $height="16px" />
+      <SkeletonText $width="40%" $height="36px" />
+      <SkeletonText $width="60%" $height="16px" />
     </div>
     
     {/* Cards skeleton */}
@@ -245,7 +251,7 @@ export const SkeletonDashboard: React.FC = () => (
     {/* Main content grid */}
     <DashboardGrid>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <SkeletonChart $height="400px" />
+        <OriginalSkeletonChart $height="400px" />
         <SkeletonMap height="300px" />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -259,8 +265,8 @@ export const SkeletonDashboard: React.FC = () => (
 export const SkeletonAlertsPage: React.FC = () => (
   <div style={{ padding: '24px' }}>
     <div style={{ marginBottom: '24px' }}>
-      <SkeletonTextBase $width="30%" $height="32px" />
-      <SkeletonTextBase $width="50%" $height="16px" />
+      <OriginalSkeletonText $width="30%" $height="32px" />
+      <OriginalSkeletonText $width="50%" $height="16px" />
     </div>
     <SkeletonList items={6} />
   </div>
@@ -270,13 +276,13 @@ export const SkeletonAlertsPage: React.FC = () => (
 export const SkeletonMapPage: React.FC = () => (
   <div style={{ padding: '24px' }}>
     <div style={{ marginBottom: '16px' }}>
-      <SkeletonTextBase $width="40%" $height="32px" />
+      <OriginalSkeletonText $width="40%" $height="32px" />
     </div>
     <SkeletonMap height="600px" />
     <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-      <SkeletonCardBase $height="120px" />
-      <SkeletonCardBase $height="120px" />
-      <SkeletonCardBase $height="120px" />
+      <OriginalSkeletonCard $height="120px" />
+      <OriginalSkeletonCard $height="120px" />
+      <OriginalSkeletonCard $height="120px" />
     </div>
   </div>
 );
@@ -284,7 +290,7 @@ export const SkeletonMapPage: React.FC = () => (
 const LoadingStatesComponents = {
   SkeletonText,
   SkeletonCard,
-  SkeletonChart,
+  SkeletonChart: CustomSkeletonChart,
   SkeletonButton,
   PulseLoader,
   WaveLoader,
