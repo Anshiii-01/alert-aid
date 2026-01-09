@@ -477,7 +477,8 @@ class SessionManagementService {
   private startSessionCleanup(): void {
     setInterval(() => {
       const now = new Date();
-      for (const session of this.sessions.values()) {
+      const sessionsArray = Array.from(this.sessions.values());
+      for (const session of sessionsArray) {
         if (session.status === 'active' || session.status === 'idle') {
           // Check expiration
           if (session.expiresAt < now) {
@@ -923,7 +924,8 @@ class SessionManagementService {
       device.updatedAt = new Date();
 
       // Terminate all sessions from this device
-      for (const session of this.sessions.values()) {
+      const sessionsArray = Array.from(this.sessions.values());
+      for (const session of sessionsArray) {
         if (session.userId === userId && session.device.fingerprint === deviceFingerprint) {
           if (session.status === 'active' || session.status === 'idle') {
             this.terminateSession(session.id, 'device_change');

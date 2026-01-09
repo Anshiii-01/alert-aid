@@ -1,678 +1,442 @@
 /**
- * Configuration Service
- * Comprehensive configuration management, versioning, and distribution
+ * Configuration Management Service
+ * Comprehensive configuration management, environment settings, and dynamic config handling
  */
 
-// Configuration Type
-type ConfigurationType = 'application' | 'environment' | 'feature' | 'secret' | 'runtime' | 'static';
+// Config Type
+type ConfigType = 'string' | 'number' | 'boolean' | 'json' | 'secret' | 'array' | 'enum';
 
-// Configuration Format
-type ConfigurationFormat = 'json' | 'yaml' | 'toml' | 'properties' | 'env' | 'xml' | 'hcl';
+// Config Scope
+type ConfigScope = 'global' | 'environment' | 'service' | 'tenant' | 'user';
 
-// Configuration Status
-type ConfigurationStatus = 'draft' | 'pending' | 'active' | 'deprecated' | 'archived';
+// Config Status
+type ConfigStatus = 'active' | 'deprecated' | 'pending' | 'disabled';
 
-// Change Type
-type ChangeType = 'create' | 'update' | 'delete' | 'rollback' | 'promote';
+// Environment
+type Environment = 'development' | 'staging' | 'production' | 'testing';
 
-// Configuration
-interface Configuration {
+// Configuration Item
+interface ConfigurationItem {
   id: string;
+  key: string;
   name: string;
   description: string;
-  type: ConfigurationType;
-  format: ConfigurationFormat;
-  namespace: string;
-  environment: string;
-  version: ConfigurationVersion;
-  content: ConfigurationContent;
-  schema: ConfigurationSchema;
-  inheritance: ConfigurationInheritance;
-  deployment: ConfigurationDeployment;
-  validation: ConfigurationValidation;
-  audit: ConfigurationAudit;
-  access: ConfigurationAccess;
-  status: ConfigurationStatus;
-  metadata: ConfigurationMetadata;
-}
-
-// Configuration Version
-interface ConfigurationVersion {
-  current: string;
-  previous?: string;
-  history: VersionHistoryEntry[];
-  latest: string;
-  publishedAt?: Date;
-  publishedBy?: string;
-}
-
-// Version History Entry
-interface VersionHistoryEntry {
-  version: string;
-  timestamp: Date;
-  author: string;
-  message: string;
-  changeType: ChangeType;
-  diff?: ConfigurationDiff;
-  approved: boolean;
-  approver?: string;
-}
-
-// Configuration Diff
-interface ConfigurationDiff {
-  added: string[];
-  removed: string[];
-  modified: DiffEntry[];
-  summary: string;
-}
-
-// Diff Entry
-interface DiffEntry {
-  path: string;
-  oldValue: unknown;
-  newValue: unknown;
-}
-
-// Configuration Content
-interface ConfigurationContent {
-  data: Record<string, unknown>;
-  raw?: string;
+  type: ConfigType;
+  scope: ConfigScope;
+  status: ConfigStatus;
+  value: ConfigValue;
+  defaultValue: ConfigValue;
+  schema: ConfigSchema;
+  overrides: ConfigOverride[];
+  history: ConfigHistory[];
+  dependencies: ConfigDependency[];
+  tags: string[];
+  category: string;
+  sensitive: boolean;
   encrypted: boolean;
-  encryptedFields?: string[];
-  resolvedData?: Record<string, unknown>;
-  references: ConfigurationReference[];
+  validation: ConfigValidation;
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    updatedAt: Date;
+    version: number;
+    source: 'manual' | 'api' | 'import' | 'sync';
+  };
 }
 
-// Configuration Reference
-interface ConfigurationReference {
-  path: string;
-  type: 'config' | 'secret' | 'environment' | 'external';
-  source: string;
-  resolved: boolean;
-  value?: unknown;
+// Config Value
+type ConfigValue = string | number | boolean | Record<string, unknown> | unknown[] | null;
+
+// Config Schema
+interface ConfigSchema {
+  type: ConfigType;
+  format?: string;
+  enum?: unknown[];
+  minimum?: number;
+  maximum?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  items?: ConfigSchema;
+  properties?: Record<string, ConfigSchema>;
+  required?: string[];
+  default?: ConfigValue;
+  examples?: ConfigValue[];
 }
 
-// Configuration Schema
-interface ConfigurationSchema {
-  enabled: boolean;
-  type: 'json_schema' | 'avro' | 'protobuf' | 'custom';
-  definition?: Record<string, unknown>;
-  version?: string;
-  validation: SchemaValidation;
-}
-
-// Schema Validation
-interface SchemaValidation {
-  strict: boolean;
-  additionalProperties: boolean;
-  coerceTypes: boolean;
-  removeAdditional: boolean;
-  useDefaults: boolean;
-}
-
-// Configuration Inheritance
-interface ConfigurationInheritance {
-  enabled: boolean;
-  parent?: string;
-  mergeStrategy: 'override' | 'merge' | 'deep_merge';
-  inheritedFields: string[];
-  excludedFields: string[];
-  overrides: Record<string, unknown>;
-}
-
-// Configuration Deployment
-interface ConfigurationDeployment {
-  targets: DeploymentTarget[];
-  strategy: DeploymentStrategy;
-  rollout: RolloutConfig;
-  rollback: RollbackConfig;
-  notifications: DeploymentNotification[];
-  lastDeployment?: DeploymentRecord;
-}
-
-// Deployment Target
-interface DeploymentTarget {
+// Config Override
+interface ConfigOverride {
   id: string;
-  name: string;
-  type: 'application' | 'service' | 'cluster' | 'region' | 'instance';
-  selector: TargetSelector;
-  status: 'pending' | 'synced' | 'failed' | 'outdated';
-  lastSync?: Date;
-  version?: string;
-}
-
-// Target Selector
-interface TargetSelector {
-  labels?: Record<string, string>;
-  namespaces?: string[];
-  environments?: string[];
-  applications?: string[];
-}
-
-// Deployment Strategy
-interface DeploymentStrategy {
-  type: 'immediate' | 'rolling' | 'canary' | 'blue_green';
-  batchSize?: number;
-  batchPercentage?: number;
-  interval?: number;
-  pauseOnFailure: boolean;
-  autoPromote: boolean;
-}
-
-// Rollout Config
-interface RolloutConfig {
+  scope: ConfigScope;
+  scopeId: string;
+  scopeName: string;
+  value: ConfigValue;
+  priority: number;
   enabled: boolean;
-  initialPercentage: number;
-  increment: number;
-  interval: number;
-  healthCheck: HealthCheckConfig;
-  metrics: RolloutMetrics;
+  conditions: OverrideCondition[];
+  validFrom?: Date;
+  validUntil?: Date;
+  createdAt: Date;
+  createdBy: string;
 }
 
-// Health Check Config
-interface HealthCheckConfig {
-  enabled: boolean;
-  endpoint?: string;
-  interval: number;
-  timeout: number;
-  successThreshold: number;
-  failureThreshold: number;
+// Override Condition
+interface OverrideCondition {
+  field: string;
+  operator: 'equals' | 'not_equals' | 'contains' | 'in_list' | 'regex' | 'between';
+  value: unknown;
 }
 
-// Rollout Metrics
-interface RolloutMetrics {
-  errorRateThreshold: number;
-  latencyThreshold: number;
-  successRateThreshold: number;
-  evaluationInterval: number;
-}
-
-// Rollback Config
-interface RollbackConfig {
-  enabled: boolean;
-  automatic: boolean;
-  threshold: number;
-  window: number;
-  keepVersions: number;
-  notifyOnRollback: boolean;
-}
-
-// Deployment Notification
-interface DeploymentNotification {
-  channel: 'email' | 'slack' | 'webhook' | 'pagerduty';
-  events: ('started' | 'completed' | 'failed' | 'rolled_back')[];
-  recipients: string[];
-  config: Record<string, string>;
-}
-
-// Deployment Record
-interface DeploymentRecord {
+// Config History
+interface ConfigHistory {
   id: string;
-  version: string;
   timestamp: Date;
-  status: 'success' | 'failed' | 'in_progress' | 'rolled_back';
-  targets: number;
-  successfulTargets: number;
-  failedTargets: number;
-  duration: number;
-  initiatedBy: string;
-  error?: string;
+  action: 'created' | 'updated' | 'deleted' | 'override_added' | 'override_removed' | 'rollback';
+  actor: {
+    type: 'user' | 'service' | 'system';
+    id: string;
+    name: string;
+  };
+  previousValue?: ConfigValue;
+  newValue?: ConfigValue;
+  version: number;
+  reason?: string;
 }
 
-// Configuration Validation
-interface ConfigurationValidation {
-  enabled: boolean;
+// Config Dependency
+interface ConfigDependency {
+  configKey: string;
+  type: 'requires' | 'conflicts' | 'overrides';
+  condition?: string;
+}
+
+// Config Validation
+interface ConfigValidation {
+  required: boolean;
   rules: ValidationRule[];
-  lastValidation?: ValidationResult;
-  validateOnChange: boolean;
-  validateOnDeploy: boolean;
+  customValidator?: string;
+  errorMessage?: string;
 }
 
 // Validation Rule
 interface ValidationRule {
-  id: string;
-  name: string;
-  description: string;
-  type: 'schema' | 'regex' | 'range' | 'enum' | 'custom';
-  path: string;
-  condition: ValidationCondition;
-  severity: 'error' | 'warning' | 'info';
+  type: 'range' | 'regex' | 'custom' | 'enum' | 'length' | 'type';
+  params: Record<string, unknown>;
   message: string;
-  enabled: boolean;
 }
 
-// Validation Condition
-interface ValidationCondition {
-  operator: 'equals' | 'not_equals' | 'contains' | 'matches' | 'in' | 'not_in' | 'gt' | 'lt' | 'gte' | 'lte';
-  value?: unknown;
-  values?: unknown[];
-  pattern?: string;
-  min?: number;
-  max?: number;
-}
-
-// Validation Result
-interface ValidationResult {
-  valid: boolean;
-  timestamp: Date;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-  duration: number;
-}
-
-// Validation Error
-interface ValidationError {
-  rule: string;
+// Config Namespace
+interface ConfigNamespace {
+  id: string;
+  name: string;
+  description: string;
   path: string;
-  message: string;
-  value: unknown;
+  parent?: string;
+  children: string[];
+  configs: string[];
+  permissions: NamespacePermission[];
+  settings: NamespaceSettings;
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    updatedAt: Date;
+  };
 }
 
-// Validation Warning
-interface ValidationWarning {
-  rule: string;
-  path: string;
-  message: string;
-  suggestion?: string;
+// Namespace Permission
+interface NamespacePermission {
+  principal: {
+    type: 'user' | 'role' | 'service' | 'group';
+    id: string;
+  };
+  permissions: ('read' | 'write' | 'admin')[];
+  inherited: boolean;
 }
 
-// Configuration Audit
-interface ConfigurationAudit {
-  enabled: boolean;
-  events: AuditEvent[];
-  retentionDays: number;
-  exportEnabled: boolean;
+// Namespace Settings
+interface NamespaceSettings {
+  inheritFromParent: boolean;
+  allowOverrides: boolean;
+  requireApproval: boolean;
+  encryptSensitive: boolean;
+  auditEnabled: boolean;
+  maxVersions: number;
 }
 
-// Audit Event
-interface AuditEvent {
-  id: string;
-  timestamp: Date;
-  action: 'view' | 'create' | 'update' | 'delete' | 'deploy' | 'rollback' | 'export';
-  actor: string;
-  actorType: 'user' | 'service' | 'system';
-  details: Record<string, unknown>;
-  ipAddress?: string;
-  result: 'success' | 'failure';
-  version?: string;
-}
-
-// Configuration Access
-interface ConfigurationAccess {
-  owner: string;
-  team: string;
-  visibility: 'public' | 'internal' | 'private' | 'restricted';
-  permissions: AccessPermission[];
-  apiKeys: ConfigApiKey[];
-  tokens: AccessToken[];
-}
-
-// Access Permission
-interface AccessPermission {
-  principal: string;
-  principalType: 'user' | 'group' | 'service' | 'role';
-  actions: ('read' | 'write' | 'delete' | 'deploy' | 'admin')[];
-  conditions?: AccessCondition[];
-}
-
-// Access Condition
-interface AccessCondition {
-  type: 'ip' | 'time' | 'environment' | 'mfa';
-  value: string;
-}
-
-// Config API Key
-interface ConfigApiKey {
+// Environment Configuration
+interface EnvironmentConfiguration {
   id: string;
   name: string;
-  key: string;
-  permissions: string[];
-  rateLimit?: number;
-  expiresAt?: Date;
-  lastUsed?: Date;
-  status: 'active' | 'revoked';
-}
-
-// Access Token
-interface AccessToken {
-  id: string;
-  name: string;
-  token: string;
-  scopes: string[];
-  expiresAt: Date;
-  createdBy: string;
-  status: 'active' | 'expired' | 'revoked';
-}
-
-// Configuration Metadata
-interface ConfigurationMetadata {
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  updatedBy: string;
-  tags: string[];
-  labels: Record<string, string>;
-  annotations: Record<string, string>;
-  externalId?: string;
-}
-
-// Configuration Template
-interface ConfigurationTemplate {
-  id: string;
-  name: string;
+  environment: Environment;
   description: string;
-  type: ConfigurationType;
-  format: ConfigurationFormat;
-  schema: ConfigurationSchema;
-  defaults: Record<string, unknown>;
-  variables: TemplateVariable[];
-  examples: TemplateExample[];
-  usage: TemplateUsage;
-  metadata: TemplateMetadata;
-}
-
-// Template Variable
-interface TemplateVariable {
-  name: string;
-  description: string;
-  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-  required: boolean;
-  default?: unknown;
-  validation?: ValidationCondition;
-  sensitive: boolean;
-}
-
-// Template Example
-interface TemplateExample {
-  name: string;
-  description: string;
-  values: Record<string, unknown>;
-  result: Record<string, unknown>;
-}
-
-// Template Usage
-interface TemplateUsage {
-  totalUsage: number;
-  lastUsed?: Date;
-  configurations: string[];
-}
-
-// Template Metadata
-interface TemplateMetadata {
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  version: string;
-  category: string;
-  tags: string[];
-}
-
-// Configuration Environment
-interface ConfigurationEnvironment {
-  id: string;
-  name: string;
-  description: string;
-  type: 'development' | 'staging' | 'production' | 'testing';
+  status: 'active' | 'inactive' | 'locked';
   variables: EnvironmentVariable[];
-  secrets: EnvironmentSecret[];
-  configurations: string[];
-  promotion: PromotionConfig;
-  protection: EnvironmentProtection;
-  metadata: EnvironmentMetadata;
+  secrets: string[];
+  inheritsFrom?: string;
+  overrides: Record<string, ConfigValue>;
+  deployments: {
+    lastDeployed: Date;
+    deployedBy: string;
+    version: string;
+  }[];
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    updatedAt: Date;
+  };
 }
 
 // Environment Variable
 interface EnvironmentVariable {
-  name: string;
-  value: string;
-  description?: string;
-  type: 'plain' | 'reference' | 'computed';
-  source?: string;
-  sensitive: boolean;
-  overridable: boolean;
-}
-
-// Environment Secret
-interface EnvironmentSecret {
-  name: string;
-  reference: string;
-  version?: string;
-  provider: 'vault' | 'aws_secrets' | 'azure_keyvault' | 'gcp_secrets' | 'local';
-  rotationEnabled: boolean;
-  lastRotated?: Date;
-}
-
-// Promotion Config
-interface PromotionConfig {
-  enabled: boolean;
-  sourceEnvironments: string[];
-  targetEnvironments: string[];
-  approvalRequired: boolean;
-  approvers: string[];
-  autoPromote: boolean;
-  promotionWindow?: {
-    days: number[];
-    startTime: string;
-    endTime: string;
-    timezone: string;
-  };
-}
-
-// Environment Protection
-interface EnvironmentProtection {
-  enabled: boolean;
-  rules: ProtectionRule[];
-  breakGlass: BreakGlassConfig;
-}
-
-// Protection Rule
-interface ProtectionRule {
   id: string;
-  name: string;
-  type: 'approval' | 'review' | 'wait_timer' | 'branch_protection';
-  config: Record<string, unknown>;
-  enforced: boolean;
+  key: string;
+  value: ConfigValue;
+  type: ConfigType;
+  sensitive: boolean;
+  source: 'manual' | 'secret_manager' | 'inherited' | 'computed';
+  sourceId?: string;
 }
 
-// Break Glass Config
-interface BreakGlassConfig {
-  enabled: boolean;
-  approvers: string[];
-  expirationMinutes: number;
-  auditRequired: boolean;
-}
-
-// Environment Metadata
-interface EnvironmentMetadata {
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  region?: string;
-  cluster?: string;
-}
-
-// Configuration Namespace
-interface ConfigurationNamespace {
+// Config Profile
+interface ConfigProfile {
   id: string;
   name: string;
   description: string;
-  parent?: string;
-  children: string[];
-  configurations: string[];
-  quotas: NamespaceQuota;
-  policies: NamespacePolicy[];
-  access: NamespaceAccess;
-  metadata: NamespaceMetadata;
+  type: 'base' | 'overlay' | 'override';
+  priority: number;
+  active: boolean;
+  configs: Record<string, ConfigValue>;
+  applicability: {
+    environments: Environment[];
+    services: string[];
+    tenants: string[];
+    conditions: OverrideCondition[];
+  };
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    updatedAt: Date;
+    activatedAt?: Date;
+  };
 }
 
-// Namespace Quota
-interface NamespaceQuota {
-  maxConfigurations: number;
-  maxVersions: number;
-  maxSize: number;
-  usedConfigurations: number;
-  usedVersions: number;
-  usedSize: number;
-}
-
-// Namespace Policy
-interface NamespacePolicy {
+// Config Template
+interface ConfigTemplate {
   id: string;
   name: string;
-  type: 'naming' | 'validation' | 'deployment' | 'access';
-  rules: Record<string, unknown>;
-  enforced: boolean;
+  description: string;
+  category: string;
+  schema: {
+    configs: Partial<ConfigurationItem>[];
+    namespaces: Partial<ConfigNamespace>[];
+  };
+  variables: {
+    name: string;
+    description: string;
+    default?: ConfigValue;
+    required: boolean;
+  }[];
+  tags: string[];
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    usageCount: number;
+  };
 }
 
-// Namespace Access
-interface NamespaceAccess {
-  owner: string;
-  admins: string[];
-  members: string[];
-  viewers: string[];
-}
-
-// Namespace Metadata
-interface NamespaceMetadata {
+// Config Diff
+interface ConfigDiff {
+  id: string;
+  source: {
+    type: 'environment' | 'profile' | 'snapshot';
+    id: string;
+    name: string;
+  };
+  target: {
+    type: 'environment' | 'profile' | 'snapshot';
+    id: string;
+    name: string;
+  };
+  changes: {
+    key: string;
+    type: 'added' | 'removed' | 'modified';
+    sourceValue?: ConfigValue;
+    targetValue?: ConfigValue;
+  }[];
   createdAt: Date;
   createdBy: string;
-  updatedAt: Date;
-  labels: Record<string, string>;
 }
 
-// Configuration Change Request
-interface ConfigurationChangeRequest {
-  id: string;
-  configurationId: string;
-  type: ChangeType;
-  status: 'pending' | 'approved' | 'rejected' | 'applied' | 'cancelled';
-  requestor: ChangeRequestor;
-  changes: ProposedChange[];
-  review: ChangeReview;
-  impact: ChangeImpact;
-  schedule?: ChangeSchedule;
-  metadata: ChangeRequestMetadata;
-}
-
-// Change Requestor
-interface ChangeRequestor {
+// Config Snapshot
+interface ConfigSnapshot {
   id: string;
   name: string;
-  email: string;
-  team: string;
-  justification: string;
+  description: string;
+  environment: Environment;
+  configs: Record<string, ConfigValue>;
+  profiles: string[];
+  version: string;
+  tags: string[];
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    size: number;
+    configCount: number;
+  };
 }
 
-// Proposed Change
-interface ProposedChange {
-  path: string;
-  operation: 'add' | 'remove' | 'replace';
-  oldValue?: unknown;
-  newValue?: unknown;
-}
-
-// Change Review
-interface ChangeReview {
-  required: boolean;
-  reviewers: Reviewer[];
-  approvals: ReviewApproval[];
-  status: 'pending' | 'approved' | 'rejected';
-  comments: ReviewComment[];
-}
-
-// Reviewer
-interface Reviewer {
+// Config Deployment
+interface ConfigDeployment {
   id: string;
   name: string;
-  email: string;
-  role: 'required' | 'optional';
-  status: 'pending' | 'approved' | 'rejected' | 'abstained';
+  environment: Environment;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'rolled_back';
+  type: 'full' | 'incremental' | 'rollback';
+  source: {
+    type: 'snapshot' | 'profile' | 'manual';
+    id?: string;
+  };
+  changes: {
+    key: string;
+    oldValue?: ConfigValue;
+    newValue?: ConfigValue;
+    action: 'set' | 'update' | 'delete';
+  }[];
+  targets: {
+    service: string;
+    instances: number;
+    status: 'pending' | 'applied' | 'failed';
+    appliedAt?: Date;
+  }[];
+  rollback?: {
+    snapshotId: string;
+    reason: string;
+    rolledBackAt: Date;
+    rolledBackBy: string;
+  };
+  schedule?: {
+    scheduledAt: Date;
+    approvedBy?: string;
+    approvedAt?: Date;
+  };
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+    startedAt?: Date;
+    completedAt?: Date;
+  };
 }
 
-// Review Approval
-interface ReviewApproval {
-  reviewerId: string;
-  timestamp: Date;
-  status: 'approved' | 'rejected' | 'abstained';
-  comment?: string;
-}
-
-// Review Comment
-interface ReviewComment {
+// Config Watch
+interface ConfigWatch {
   id: string;
-  author: string;
+  name: string;
+  keys: string[];
+  patterns: string[];
+  callback: {
+    type: 'webhook' | 'event' | 'function';
+    url?: string;
+    eventType?: string;
+    functionName?: string;
+  };
+  filters: {
+    environments: Environment[];
+    scopes: ConfigScope[];
+    actions: ('created' | 'updated' | 'deleted')[];
+  };
+  enabled: boolean;
+  lastTriggered?: Date;
+  triggerCount: number;
+  metadata: {
+    createdAt: Date;
+    createdBy: string;
+  };
+}
+
+// Config Audit
+interface ConfigAudit {
+  id: string;
   timestamp: Date;
-  content: string;
-  resolved: boolean;
+  action: string;
+  configKey: string;
+  environment?: Environment;
+  actor: {
+    type: 'user' | 'service' | 'system';
+    id: string;
+    name: string;
+    ip?: string;
+  };
+  changes?: {
+    field: string;
+    oldValue?: unknown;
+    newValue?: unknown;
+  }[];
+  success: boolean;
+  errorMessage?: string;
 }
 
-// Change Impact
-interface ChangeImpact {
-  affectedServices: string[];
-  affectedEnvironments: string[];
-  riskLevel: 'low' | 'medium' | 'high' | 'critical';
-  impactAnalysis: string;
-  rollbackPlan: string;
-}
-
-// Change Schedule
-interface ChangeSchedule {
-  scheduledAt: Date;
-  timezone: string;
-  maintenanceWindow: boolean;
-  autoApply: boolean;
-}
-
-// Change Request Metadata
-interface ChangeRequestMetadata {
-  createdAt: Date;
-  updatedAt: Date;
-  appliedAt?: Date;
-  ticketId?: string;
+// Config Service Client
+interface ConfigServiceClient {
+  id: string;
+  name: string;
+  service: string;
+  environment: Environment;
+  status: 'connected' | 'disconnected' | 'stale';
+  subscriptions: string[];
+  lastSync: Date;
+  version: string;
+  configVersion: number;
+  metadata: {
+    createdAt: Date;
+    lastHeartbeat: Date;
+    ip?: string;
+    host?: string;
+  };
 }
 
 // Configuration Statistics
 interface ConfigurationStatistics {
   overview: {
-    totalConfigurations: number;
-    activeConfigurations: number;
-    draftConfigurations: number;
-    deprecatedConfigurations: number;
-    totalVersions: number;
+    totalConfigs: number;
+    activeConfigs: number;
+    deprecatedConfigs: number;
+    sensitiveConfigs: number;
     totalNamespaces: number;
-    totalEnvironments: number;
   };
-  byType: Record<ConfigurationType, number>;
-  byFormat: Record<ConfigurationFormat, number>;
-  byStatus: Record<ConfigurationStatus, number>;
-  byEnvironment: Record<string, number>;
-  changes: {
-    today: number;
-    thisWeek: number;
-    thisMonth: number;
-    pendingApproval: number;
+  byType: Record<ConfigType, number>;
+  byScope: Record<ConfigScope, number>;
+  byCategory: Record<string, number>;
+  activity: {
+    changesLast24h: number;
+    changesLast7d: number;
+    deploymentsLast7d: number;
+    activeWatches: number;
   };
-  deployments: {
-    successful: number;
-    failed: number;
-    rolledBack: number;
-    avgDeploymentTime: number;
+  clients: {
+    totalClients: number;
+    connectedClients: number;
+    staleClients: number;
   };
-  validation: {
-    validConfigurations: number;
-    invalidConfigurations: number;
-    totalValidations: number;
-    avgValidationTime: number;
-  };
+  trends: {
+    date: string;
+    changes: number;
+    deployments: number;
+    reads: number;
+  }[];
 }
 
 class ConfigurationService {
   private static instance: ConfigurationService;
-  private configurations: Map<string, Configuration> = new Map();
-  private templates: Map<string, ConfigurationTemplate> = new Map();
-  private environments: Map<string, ConfigurationEnvironment> = new Map();
-  private namespaces: Map<string, ConfigurationNamespace> = new Map();
-  private changeRequests: Map<string, ConfigurationChangeRequest> = new Map();
+  private configs: Map<string, ConfigurationItem> = new Map();
+  private namespaces: Map<string, ConfigNamespace> = new Map();
+  private environments: Map<string, EnvironmentConfiguration> = new Map();
+  private profiles: Map<string, ConfigProfile> = new Map();
+  private templates: Map<string, ConfigTemplate> = new Map();
+  private snapshots: Map<string, ConfigSnapshot> = new Map();
+  private deployments: Map<string, ConfigDeployment> = new Map();
+  private watches: Map<string, ConfigWatch> = new Map();
+  private audits: Map<string, ConfigAudit[]> = new Map();
+  private clients: Map<string, ConfigServiceClient> = new Map();
   private eventListeners: ((event: string, data: unknown) => void)[] = [];
 
   private constructor() {
@@ -692,343 +456,688 @@ class ConfigurationService {
 
   private initializeSampleData(): void {
     // Initialize Namespaces
-    const namespacesData = ['default', 'platform', 'commerce', 'security'];
+    const namespacesData = [
+      { name: 'application', path: '/application', parent: null },
+      { name: 'database', path: '/application/database', parent: 'application' },
+      { name: 'cache', path: '/application/cache', parent: 'application' },
+      { name: 'api', path: '/application/api', parent: 'application' },
+      { name: 'services', path: '/services', parent: null },
+      { name: 'feature-flags', path: '/feature-flags', parent: null },
+    ];
+
     namespacesData.forEach((ns, idx) => {
-      const namespace: ConfigurationNamespace = {
+      const namespace: ConfigNamespace = {
         id: `ns-${(idx + 1).toString().padStart(4, '0')}`,
-        name: ns,
-        description: `${ns} namespace for configurations`,
-        configurations: [],
+        name: ns.name,
+        description: `Configuration namespace for ${ns.name}`,
+        path: ns.path,
+        parent: ns.parent ? `ns-${(namespacesData.findIndex((n) => n.name === ns.parent) + 1).toString().padStart(4, '0')}` : undefined,
         children: [],
-        quotas: { maxConfigurations: 100, maxVersions: 50, maxSize: 10485760, usedConfigurations: 0, usedVersions: 0, usedSize: 0 },
-        policies: [],
-        access: { owner: 'admin', admins: ['admin'], members: [`${ns}-team`], viewers: [] },
-        metadata: { createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), createdBy: 'admin', updatedAt: new Date(), labels: {} },
+        configs: [],
+        permissions: [
+          { principal: { type: 'role', id: 'admin' }, permissions: ['read', 'write', 'admin'], inherited: false },
+          { principal: { type: 'role', id: 'developer' }, permissions: ['read'], inherited: false },
+        ],
+        settings: {
+          inheritFromParent: !!ns.parent,
+          allowOverrides: true,
+          requireApproval: ns.name === 'application',
+          encryptSensitive: true,
+          auditEnabled: true,
+          maxVersions: 50,
+        },
+        metadata: {
+          createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          updatedAt: new Date(),
+        },
       };
       this.namespaces.set(namespace.id, namespace);
     });
 
-    // Initialize Environments
-    const envsData = [
-      { name: 'development', type: 'development' as const },
-      { name: 'staging', type: 'staging' as const },
-      { name: 'production', type: 'production' as const },
+    // Initialize Configuration Items
+    const configsData = [
+      { key: 'app.name', name: 'Application Name', type: 'string', value: 'AlertAid', scope: 'global', category: 'application' },
+      { key: 'app.version', name: 'Application Version', type: 'string', value: '2.1.0', scope: 'global', category: 'application' },
+      { key: 'app.debug', name: 'Debug Mode', type: 'boolean', value: false, scope: 'environment', category: 'application' },
+      { key: 'app.log_level', name: 'Log Level', type: 'enum', value: 'info', scope: 'environment', category: 'logging' },
+      { key: 'db.host', name: 'Database Host', type: 'string', value: 'localhost', scope: 'environment', category: 'database' },
+      { key: 'db.port', name: 'Database Port', type: 'number', value: 5432, scope: 'environment', category: 'database' },
+      { key: 'db.name', name: 'Database Name', type: 'string', value: 'alertaid', scope: 'environment', category: 'database' },
+      { key: 'db.pool_size', name: 'Connection Pool Size', type: 'number', value: 20, scope: 'environment', category: 'database' },
+      { key: 'cache.enabled', name: 'Cache Enabled', type: 'boolean', value: true, scope: 'global', category: 'cache' },
+      { key: 'cache.ttl', name: 'Cache TTL', type: 'number', value: 3600, scope: 'global', category: 'cache' },
+      { key: 'api.rate_limit', name: 'API Rate Limit', type: 'number', value: 1000, scope: 'service', category: 'api' },
+      { key: 'api.timeout', name: 'API Timeout', type: 'number', value: 30000, scope: 'service', category: 'api' },
+      { key: 'notification.email_enabled', name: 'Email Notifications', type: 'boolean', value: true, scope: 'tenant', category: 'notifications' },
+      { key: 'notification.sms_enabled', name: 'SMS Notifications', type: 'boolean', value: false, scope: 'tenant', category: 'notifications' },
+      { key: 'feature.dark_mode', name: 'Dark Mode Feature', type: 'boolean', value: true, scope: 'user', category: 'features' },
+      { key: 'security.session_timeout', name: 'Session Timeout', type: 'number', value: 3600, scope: 'global', category: 'security' },
+      { key: 'security.max_login_attempts', name: 'Max Login Attempts', type: 'number', value: 5, scope: 'global', category: 'security' },
+      { key: 'integrations.slack_webhook', name: 'Slack Webhook URL', type: 'secret', value: 'https://hooks.slack.com/...', scope: 'environment', category: 'integrations' },
+      { key: 'ui.theme', name: 'UI Theme', type: 'json', value: { primary: '#007bff', secondary: '#6c757d' }, scope: 'tenant', category: 'ui' },
+      { key: 'limits.max_alerts', name: 'Max Alerts per Day', type: 'number', value: 10000, scope: 'tenant', category: 'limits' },
     ];
-    envsData.forEach((env, idx) => {
-      const environment: ConfigurationEnvironment = {
-        id: `env-${(idx + 1).toString().padStart(4, '0')}`,
-        name: env.name,
-        description: `${env.name} environment`,
-        type: env.type,
-        variables: [
-          { name: 'LOG_LEVEL', value: env.type === 'production' ? 'info' : 'debug', type: 'plain', sensitive: false, overridable: true },
-          { name: 'API_URL', value: `https://api-${env.name}.example.com`, type: 'plain', sensitive: false, overridable: false },
-          { name: 'DB_HOST', value: `db-${env.name}.example.com`, type: 'plain', sensitive: false, overridable: false },
-        ],
-        secrets: [
-          { name: 'DB_PASSWORD', reference: `vault://secrets/${env.name}/db-password`, provider: 'vault', rotationEnabled: true, lastRotated: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-          { name: 'API_KEY', reference: `vault://secrets/${env.name}/api-key`, provider: 'vault', rotationEnabled: true },
-        ],
-        configurations: [],
-        promotion: {
-          enabled: true,
-          sourceEnvironments: idx > 0 ? [envsData[idx - 1].name] : [],
-          targetEnvironments: idx < envsData.length - 1 ? [envsData[idx + 1].name] : [],
-          approvalRequired: env.type === 'production',
-          approvers: env.type === 'production' ? ['tech-lead', 'ops-lead'] : [],
-          autoPromote: env.type !== 'production',
+
+    configsData.forEach((c, idx) => {
+      const config: ConfigurationItem = {
+        id: `config-${(idx + 1).toString().padStart(4, '0')}`,
+        key: c.key,
+        name: c.name,
+        description: `Configuration for ${c.name.toLowerCase()}`,
+        type: c.type as ConfigType,
+        scope: c.scope as ConfigScope,
+        status: idx === 3 ? 'deprecated' : 'active',
+        value: c.value,
+        defaultValue: c.value,
+        schema: {
+          type: c.type as ConfigType,
+          enum: c.type === 'enum' ? ['debug', 'info', 'warn', 'error'] : undefined,
+          minimum: c.type === 'number' ? 0 : undefined,
+          maximum: c.type === 'number' && c.key.includes('port') ? 65535 : undefined,
         },
-        protection: {
-          enabled: env.type === 'production',
-          rules: env.type === 'production' ? [
-            { id: 'rule-1', name: 'Approval Required', type: 'approval', config: { minApprovals: 2 }, enforced: true },
-            { id: 'rule-2', name: 'Maintenance Window', type: 'wait_timer', config: { hours: 'business' }, enforced: false },
+        overrides: c.scope === 'environment' ? [
+          {
+            id: `override-${idx}-1`,
+            scope: 'environment',
+            scopeId: 'production',
+            scopeName: 'Production',
+            value: c.key === 'app.debug' ? false : c.key === 'db.host' ? 'db.prod.alertaid.com' : c.value,
+            priority: 10,
+            enabled: true,
+            conditions: [],
+            createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+            createdBy: 'admin',
+          },
+          {
+            id: `override-${idx}-2`,
+            scope: 'environment',
+            scopeId: 'development',
+            scopeName: 'Development',
+            value: c.key === 'app.debug' ? true : c.key === 'db.host' ? 'localhost' : c.value,
+            priority: 5,
+            enabled: true,
+            conditions: [],
+            createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+            createdBy: 'admin',
+          },
+        ] : [],
+        history: [
+          {
+            id: `hist-${idx}-1`,
+            timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            action: 'updated',
+            actor: { type: 'user', id: 'admin', name: 'Admin User' },
+            previousValue: c.type === 'number' ? (c.value as number) - 1 : c.value,
+            newValue: c.value,
+            version: 2,
+          },
+          {
+            id: `hist-${idx}-2`,
+            timestamp: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+            action: 'created',
+            actor: { type: 'user', id: 'admin', name: 'Admin User' },
+            newValue: c.value,
+            version: 1,
+          },
+        ],
+        dependencies: c.key === 'db.pool_size' ? [{ configKey: 'db.host', type: 'requires' }] : [],
+        tags: [c.category, c.scope],
+        category: c.category,
+        sensitive: c.type === 'secret' || c.key.includes('password') || c.key.includes('webhook'),
+        encrypted: c.type === 'secret',
+        validation: {
+          required: true,
+          rules: c.type === 'number' ? [
+            { type: 'range', params: { min: 0 }, message: 'Value must be positive' },
           ] : [],
-          breakGlass: { enabled: env.type === 'production', approvers: ['admin'], expirationMinutes: 60, auditRequired: true },
         },
-        metadata: { createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), createdBy: 'admin', updatedAt: new Date(), region: 'us-west-2' },
+        metadata: {
+          createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          updatedAt: new Date(),
+          version: Math.floor(Math.random() * 10) + 1,
+          source: 'manual',
+        },
       };
-      this.environments.set(environment.id, environment);
+      this.configs.set(config.id, config);
+
+      // Add config to appropriate namespace
+      const nsName = c.category === 'database' ? 'database' : c.category === 'cache' ? 'cache' : c.category === 'api' ? 'api' : 'application';
+      const ns = Array.from(this.namespaces.values()).find((n) => n.name === nsName);
+      if (ns) ns.configs.push(config.id);
     });
 
-    // Initialize Configurations
-    const configsData = [
-      { name: 'app-config', type: 'application' as ConfigurationType, namespace: 'default' },
-      { name: 'database-config', type: 'application' as ConfigurationType, namespace: 'platform' },
-      { name: 'cache-config', type: 'application' as ConfigurationType, namespace: 'platform' },
-      { name: 'security-config', type: 'application' as ConfigurationType, namespace: 'security' },
-      { name: 'feature-flags', type: 'feature' as ConfigurationType, namespace: 'default' },
-      { name: 'rate-limits', type: 'runtime' as ConfigurationType, namespace: 'platform' },
-      { name: 'logging-config', type: 'application' as ConfigurationType, namespace: 'platform' },
-      { name: 'notification-config', type: 'application' as ConfigurationType, namespace: 'commerce' },
+    // Initialize Environment Configurations
+    const envsData: { name: string; environment: Environment }[] = [
+      { name: 'Development', environment: 'development' },
+      { name: 'Staging', environment: 'staging' },
+      { name: 'Production', environment: 'production' },
+      { name: 'Testing', environment: 'testing' },
     ];
 
-    configsData.forEach((cfg, idx) => {
-      const configId = `cfg-${(idx + 1).toString().padStart(4, '0')}`;
-      const config: Configuration = {
-        id: configId,
-        name: cfg.name,
-        description: `${cfg.name} configuration`,
-        type: cfg.type,
-        format: 'json',
-        namespace: cfg.namespace,
-        environment: 'production',
-        version: {
-          current: '1.5.0',
-          previous: '1.4.0',
-          history: [
-            { version: '1.5.0', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), author: 'admin', message: 'Updated settings', changeType: 'update', approved: true, approver: 'tech-lead' },
-            { version: '1.4.0', timestamp: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), author: 'developer', message: 'Added new features', changeType: 'update', approved: true, approver: 'admin' },
-            { version: '1.0.0', timestamp: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), author: 'admin', message: 'Initial configuration', changeType: 'create', approved: true },
-          ],
-          latest: '1.5.0',
-          publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          publishedBy: 'admin',
+    envsData.forEach((e, idx) => {
+      const envConfig: EnvironmentConfiguration = {
+        id: `env-${(idx + 1).toString().padStart(4, '0')}`,
+        name: e.name,
+        environment: e.environment,
+        description: `${e.name} environment configuration`,
+        status: e.environment === 'production' ? 'locked' : 'active',
+        variables: [
+          { id: `var-${idx}-1`, key: 'NODE_ENV', value: e.environment, type: 'string', sensitive: false, source: 'manual' },
+          { id: `var-${idx}-2`, key: 'LOG_LEVEL', value: e.environment === 'production' ? 'warn' : 'debug', type: 'string', sensitive: false, source: 'manual' },
+          { id: `var-${idx}-3`, key: 'DATABASE_URL', value: `postgres://user:pass@db.${e.environment}.alertaid.com:5432/alertaid`, type: 'string', sensitive: true, source: 'secret_manager' },
+          { id: `var-${idx}-4`, key: 'REDIS_URL', value: `redis://cache.${e.environment}.alertaid.com:6379`, type: 'string', sensitive: false, source: 'manual' },
+        ],
+        secrets: ['secret-0001', 'secret-0002'],
+        inheritsFrom: e.environment === 'staging' ? 'env-0001' : undefined,
+        overrides: {
+          'app.debug': e.environment === 'development',
+          'db.host': `db.${e.environment}.alertaid.com`,
+          'api.rate_limit': e.environment === 'production' ? 5000 : 1000,
         },
-        content: {
-          data: cfg.type === 'feature' ? {
-            features: {
-              newDashboard: { enabled: true, rolloutPercentage: 100 },
-              betaFeature: { enabled: false, allowedUsers: ['beta-testers'] },
-              experimentalApi: { enabled: true, rolloutPercentage: 25 },
-            },
-          } : {
-            server: { port: 8080, host: '0.0.0.0', timeout: 30000 },
-            database: { pool: { min: 5, max: 20 }, timeout: 5000 },
-            cache: { enabled: true, ttl: 3600 },
-            logging: { level: 'info', format: 'json' },
+        deployments: [
+          {
+            lastDeployed: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
+            deployedBy: 'deployment-service',
+            version: '2.1.' + (idx + 1),
           },
-          encrypted: false,
-          references: [],
+        ],
+        metadata: {
+          createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          updatedAt: new Date(),
         },
-        schema: {
-          enabled: true,
-          type: 'json_schema',
-          validation: { strict: true, additionalProperties: false, coerceTypes: false, removeAdditional: false, useDefaults: true },
+      };
+      this.environments.set(envConfig.id, envConfig);
+    });
+
+    // Initialize Config Profiles
+    const profilesData = [
+      { name: 'High Performance', type: 'overlay', priority: 10 },
+      { name: 'Debug Mode', type: 'overlay', priority: 20 },
+      { name: 'Security Hardened', type: 'overlay', priority: 30 },
+      { name: 'Cost Optimized', type: 'overlay', priority: 15 },
+    ];
+
+    profilesData.forEach((p, idx) => {
+      const profile: ConfigProfile = {
+        id: `profile-${(idx + 1).toString().padStart(4, '0')}`,
+        name: p.name,
+        description: `${p.name} configuration profile`,
+        type: p.type as ConfigProfile['type'],
+        priority: p.priority,
+        active: idx === 0,
+        configs: {
+          'db.pool_size': p.name === 'High Performance' ? 50 : p.name === 'Cost Optimized' ? 10 : 20,
+          'cache.ttl': p.name === 'High Performance' ? 7200 : 3600,
+          'api.timeout': p.name === 'High Performance' ? 60000 : 30000,
+          'app.debug': p.name === 'Debug Mode',
+          'security.session_timeout': p.name === 'Security Hardened' ? 1800 : 3600,
         },
-        inheritance: {
-          enabled: idx % 2 === 0,
-          mergeStrategy: 'deep_merge',
-          inheritedFields: [],
-          excludedFields: [],
-          overrides: {},
+        applicability: {
+          environments: p.name === 'Debug Mode' ? ['development', 'staging'] : ['production', 'staging'],
+          services: [],
+          tenants: [],
+          conditions: [],
         },
-        deployment: {
-          targets: [
-            { id: `target-${idx}-1`, name: 'Production Cluster', type: 'cluster', selector: { environments: ['production'] }, status: 'synced', lastSync: new Date(), version: '1.5.0' },
-            { id: `target-${idx}-2`, name: 'Staging Cluster', type: 'cluster', selector: { environments: ['staging'] }, status: 'synced', lastSync: new Date(), version: '1.5.0' },
-          ],
-          strategy: { type: 'rolling', batchPercentage: 25, interval: 30, pauseOnFailure: true, autoPromote: false },
-          rollout: { enabled: true, initialPercentage: 10, increment: 20, interval: 300, healthCheck: { enabled: true, interval: 30, timeout: 10, successThreshold: 2, failureThreshold: 3 }, metrics: { errorRateThreshold: 5, latencyThreshold: 1000, successRateThreshold: 99, evaluationInterval: 60 } },
-          rollback: { enabled: true, automatic: true, threshold: 10, window: 300, keepVersions: 10, notifyOnRollback: true },
-          notifications: [{ channel: 'slack', events: ['started', 'completed', 'failed', 'rolled_back'], recipients: ['#deployments'], config: {} }],
-          lastDeployment: { id: 'deploy-1', version: '1.5.0', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), status: 'success', targets: 2, successfulTargets: 2, failedTargets: 0, duration: 120, initiatedBy: 'admin' },
-        },
-        validation: {
-          enabled: true,
-          rules: [
-            { id: 'rule-1', name: 'Port Range', description: 'Port must be valid', type: 'range', path: 'server.port', condition: { operator: 'gte', min: 1, max: 65535 }, severity: 'error', message: 'Invalid port number', enabled: true },
-            { id: 'rule-2', name: 'Timeout Positive', description: 'Timeout must be positive', type: 'range', path: 'server.timeout', condition: { operator: 'gt', value: 0 }, severity: 'error', message: 'Timeout must be positive', enabled: true },
-          ],
-          lastValidation: { valid: true, timestamp: new Date(), errors: [], warnings: [], duration: 15 },
-          validateOnChange: true,
-          validateOnDeploy: true,
-        },
-        audit: {
-          enabled: true,
-          events: [
-            { id: 'audit-1', timestamp: new Date(), action: 'view', actor: 'admin', actorType: 'user', details: {}, result: 'success', version: '1.5.0' },
-            { id: 'audit-2', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), action: 'deploy', actor: 'admin', actorType: 'user', details: { targets: 2 }, result: 'success', version: '1.5.0' },
-          ],
-          retentionDays: 365,
-          exportEnabled: true,
-        },
-        access: {
-          owner: 'platform-team',
-          team: 'platform',
-          visibility: 'internal',
-          permissions: [
-            { principal: 'platform-team', principalType: 'group', actions: ['read', 'write', 'deploy', 'admin'] },
-            { principal: 'developers', principalType: 'group', actions: ['read'] },
-          ],
-          apiKeys: [],
-          tokens: [],
-        },
-        status: 'active',
         metadata: {
           createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
           createdBy: 'admin',
           updatedAt: new Date(),
-          updatedBy: 'admin',
-          tags: [cfg.type, cfg.namespace],
-          labels: { type: cfg.type, namespace: cfg.namespace },
-          annotations: {},
+          activatedAt: idx === 0 ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) : undefined,
         },
       };
-      this.configurations.set(configId, config);
+      this.profiles.set(profile.id, profile);
     });
 
-    // Initialize Templates
+    // Initialize Config Templates
     const templatesData = [
-      { name: 'Application Config', type: 'application' as ConfigurationType },
-      { name: 'Database Config', type: 'application' as ConfigurationType },
-      { name: 'Feature Flags', type: 'feature' as ConfigurationType },
+      { name: 'Microservice Config', category: 'services' },
+      { name: 'Database Config', category: 'database' },
+      { name: 'API Gateway Config', category: 'api' },
     ];
 
-    templatesData.forEach((tmpl, idx) => {
-      const template: ConfigurationTemplate = {
+    templatesData.forEach((t, idx) => {
+      const template: ConfigTemplate = {
         id: `tmpl-${(idx + 1).toString().padStart(4, '0')}`,
-        name: tmpl.name,
-        description: `Template for ${tmpl.name.toLowerCase()}`,
-        type: tmpl.type,
-        format: 'json',
-        schema: { enabled: true, type: 'json_schema', validation: { strict: true, additionalProperties: false, coerceTypes: false, removeAdditional: false, useDefaults: true } },
-        defaults: {},
+        name: t.name,
+        description: `Template for ${t.name.toLowerCase()}`,
+        category: t.category,
+        schema: {
+          configs: [
+            { key: `${t.category}.enabled`, type: 'boolean', defaultValue: true },
+            { key: `${t.category}.timeout`, type: 'number', defaultValue: 30000 },
+            { key: `${t.category}.retries`, type: 'number', defaultValue: 3 },
+          ],
+          namespaces: [],
+        },
         variables: [
-          { name: 'environment', description: 'Target environment', type: 'string', required: true, sensitive: false },
-          { name: 'region', description: 'Deployment region', type: 'string', required: false, default: 'us-west-2', sensitive: false },
+          { name: 'SERVICE_NAME', description: 'Name of the service', required: true },
+          { name: 'ENVIRONMENT', description: 'Target environment', default: 'development', required: false },
         ],
-        examples: [{ name: 'Basic Example', description: 'Basic configuration', values: { environment: 'production' }, result: {} }],
-        usage: { totalUsage: Math.floor(Math.random() * 100), lastUsed: new Date(), configurations: [] },
-        metadata: { createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), createdBy: 'admin', updatedAt: new Date(), version: '1.0.0', category: tmpl.type, tags: [tmpl.type] },
+        tags: ['template', t.category],
+        metadata: {
+          createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          usageCount: Math.floor(Math.random() * 50) + 10,
+        },
       };
       this.templates.set(template.id, template);
     });
 
-    // Initialize Change Requests
-    const changeRequest: ConfigurationChangeRequest = {
-      id: 'cr-0001',
-      configurationId: 'cfg-0001',
-      type: 'update',
-      status: 'pending',
-      requestor: { id: 'dev-1', name: 'Developer', email: 'dev@example.com', team: 'platform', justification: 'Update timeout settings for better performance' },
-      changes: [{ path: 'server.timeout', operation: 'replace', oldValue: 30000, newValue: 60000 }],
-      review: {
-        required: true,
-        reviewers: [{ id: 'reviewer-1', name: 'Tech Lead', email: 'lead@example.com', role: 'required', status: 'pending' }],
-        approvals: [],
-        status: 'pending',
-        comments: [],
-      },
-      impact: { affectedServices: ['api-service', 'web-service'], affectedEnvironments: ['staging', 'production'], riskLevel: 'low', impactAnalysis: 'Minor timeout change', rollbackPlan: 'Revert to previous version' },
-      metadata: { createdAt: new Date(), updatedAt: new Date() },
-    };
-    this.changeRequests.set(changeRequest.id, changeRequest);
+    // Initialize Config Snapshots
+    const snapshotsData = [
+      { name: 'Production Backup', environment: 'production' as Environment },
+      { name: 'Pre-Release Snapshot', environment: 'staging' as Environment },
+      { name: 'Rollback Point', environment: 'production' as Environment },
+    ];
+
+    snapshotsData.forEach((s, idx) => {
+      const snapshot: ConfigSnapshot = {
+        id: `snap-${(idx + 1).toString().padStart(4, '0')}`,
+        name: s.name,
+        description: `${s.name} - ${s.environment}`,
+        environment: s.environment,
+        configs: Object.fromEntries(Array.from(this.configs.values()).map((c) => [c.key, c.value])),
+        profiles: Array.from(this.profiles.keys()).slice(0, 2),
+        version: `v${idx + 1}.0.0`,
+        tags: [s.environment, 'snapshot'],
+        metadata: {
+          createdAt: new Date(Date.now() - idx * 30 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+          size: Math.floor(Math.random() * 100000) + 10000,
+          configCount: this.configs.size,
+        },
+      };
+      this.snapshots.set(snapshot.id, snapshot);
+    });
+
+    // Initialize Config Deployments
+    const deploymentsData = [
+      { name: 'Production Release v2.1', environment: 'production' as Environment, status: 'completed' },
+      { name: 'Staging Update', environment: 'staging' as Environment, status: 'completed' },
+      { name: 'Hotfix Deploy', environment: 'production' as Environment, status: 'in_progress' },
+    ];
+
+    deploymentsData.forEach((d, idx) => {
+      const deployment: ConfigDeployment = {
+        id: `deploy-${(idx + 1).toString().padStart(4, '0')}`,
+        name: d.name,
+        environment: d.environment,
+        status: d.status as ConfigDeployment['status'],
+        type: 'incremental',
+        source: { type: 'snapshot', id: `snap-${(idx % 3 + 1).toString().padStart(4, '0')}` },
+        changes: [
+          { key: 'app.version', oldValue: '2.0.0', newValue: '2.1.0', action: 'update' },
+          { key: 'api.rate_limit', oldValue: 500, newValue: 1000, action: 'update' },
+        ],
+        targets: [
+          { service: 'api-service', instances: 5, status: d.status === 'completed' ? 'applied' : 'pending', appliedAt: d.status === 'completed' ? new Date() : undefined },
+          { service: 'worker-service', instances: 3, status: d.status === 'completed' ? 'applied' : 'pending', appliedAt: d.status === 'completed' ? new Date() : undefined },
+        ],
+        metadata: {
+          createdAt: new Date(Date.now() - idx * 7 * 24 * 60 * 60 * 1000),
+          createdBy: 'deployment-bot',
+          startedAt: new Date(Date.now() - idx * 7 * 24 * 60 * 60 * 1000 + 60 * 1000),
+          completedAt: d.status === 'completed' ? new Date(Date.now() - idx * 7 * 24 * 60 * 60 * 1000 + 300 * 1000) : undefined,
+        },
+      };
+      this.deployments.set(deployment.id, deployment);
+    });
+
+    // Initialize Config Watches
+    const watchesData = [
+      { name: 'Security Config Watch', keys: ['security.*'], callback: 'webhook' },
+      { name: 'Database Config Watch', keys: ['db.*'], callback: 'event' },
+      { name: 'API Config Watch', keys: ['api.*'], callback: 'function' },
+    ];
+
+    watchesData.forEach((w, idx) => {
+      const watch: ConfigWatch = {
+        id: `watch-${(idx + 1).toString().padStart(4, '0')}`,
+        name: w.name,
+        keys: [],
+        patterns: w.keys,
+        callback: {
+          type: w.callback as ConfigWatch['callback']['type'],
+          url: w.callback === 'webhook' ? 'https://hooks.alertaid.com/config' : undefined,
+          eventType: w.callback === 'event' ? 'config.changed' : undefined,
+          functionName: w.callback === 'function' ? 'onConfigChange' : undefined,
+        },
+        filters: {
+          environments: ['production', 'staging'],
+          scopes: ['global', 'environment'],
+          actions: ['created', 'updated', 'deleted'],
+        },
+        enabled: true,
+        lastTriggered: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
+        triggerCount: Math.floor(Math.random() * 100) + 10,
+        metadata: {
+          createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+          createdBy: 'admin',
+        },
+      };
+      this.watches.set(watch.id, watch);
+    });
+
+    // Initialize Service Clients
+    const clientsData = [
+      { name: 'API Service', service: 'api-service', environment: 'production' as Environment },
+      { name: 'Worker Service', service: 'worker-service', environment: 'production' as Environment },
+      { name: 'Web App', service: 'web-app', environment: 'production' as Environment },
+      { name: 'Mobile BFF', service: 'mobile-bff', environment: 'production' as Environment },
+    ];
+
+    clientsData.forEach((c, idx) => {
+      const client: ConfigServiceClient = {
+        id: `client-${(idx + 1).toString().padStart(4, '0')}`,
+        name: c.name,
+        service: c.service,
+        environment: c.environment,
+        status: idx === 3 ? 'stale' : 'connected',
+        subscriptions: Array.from(this.configs.values()).slice(0, 10).map((cfg) => cfg.key),
+        lastSync: new Date(Date.now() - (idx === 3 ? 60 * 60 * 1000 : Math.random() * 5 * 60 * 1000)),
+        version: '1.2.0',
+        configVersion: Math.floor(Math.random() * 10) + 1,
+        metadata: {
+          createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+          lastHeartbeat: new Date(Date.now() - (idx === 3 ? 60 * 60 * 1000 : Math.random() * 60 * 1000)),
+          ip: `10.0.${idx + 1}.${Math.floor(Math.random() * 255)}`,
+          host: `${c.service}-${idx + 1}.prod.alertaid.internal`,
+        },
+      };
+      this.clients.set(client.id, client);
+    });
+
+    // Initialize Audits
+    const actions = ['created', 'updated', 'deleted', 'read'];
+    Array.from(this.configs.values()).forEach((config) => {
+      const configAudits: ConfigAudit[] = [];
+      for (let i = 0; i < 5; i++) {
+        const audit: ConfigAudit = {
+          id: `audit-${config.id}-${i}`,
+          timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000),
+          action: actions[Math.floor(Math.random() * actions.length)],
+          configKey: config.key,
+          environment: ['production', 'staging', 'development'][Math.floor(Math.random() * 3)] as Environment,
+          actor: {
+            type: ['user', 'service', 'system'][Math.floor(Math.random() * 3)] as 'user' | 'service' | 'system',
+            id: `actor-${i}`,
+            name: ['Admin User', 'API Service', 'System'][Math.floor(Math.random() * 3)],
+            ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
+          },
+          success: Math.random() > 0.1,
+        };
+        configAudits.push(audit);
+      }
+      this.audits.set(config.id, configAudits);
+    });
   }
 
   // Configuration Operations
-  public getConfigurations(namespace?: string, type?: ConfigurationType): Configuration[] {
-    let configs = Array.from(this.configurations.values());
-    if (namespace) configs = configs.filter((c) => c.namespace === namespace);
-    if (type) configs = configs.filter((c) => c.type === type);
-    return configs;
+  public getConfigs(category?: string, scope?: ConfigScope): ConfigurationItem[] {
+    let configs = Array.from(this.configs.values());
+    if (category) configs = configs.filter((c) => c.category === category);
+    if (scope) configs = configs.filter((c) => c.scope === scope);
+    return configs.sort((a, b) => a.key.localeCompare(b.key));
   }
 
-  public getConfigurationById(id: string): Configuration | undefined {
-    return this.configurations.get(id);
+  public getConfigById(id: string): ConfigurationItem | undefined {
+    return this.configs.get(id);
   }
 
-  public getConfigurationByName(name: string, namespace?: string): Configuration | undefined {
-    return Array.from(this.configurations.values()).find(
-      (c) => c.name === name && (!namespace || c.namespace === namespace)
-    );
+  public getConfigByKey(key: string): ConfigurationItem | undefined {
+    return Array.from(this.configs.values()).find((c) => c.key === key);
   }
 
-  // Template Operations
-  public getTemplates(type?: ConfigurationType): ConfigurationTemplate[] {
-    let templates = Array.from(this.templates.values());
-    if (type) templates = templates.filter((t) => t.type === type);
-    return templates;
+  public getValue(key: string, context?: { environment?: Environment; service?: string; tenant?: string; user?: string }): ConfigValue {
+    const config = this.getConfigByKey(key);
+    if (!config) return null;
+
+    // Apply overrides based on context
+    if (context) {
+      const applicableOverrides = config.overrides
+        .filter((o) => o.enabled)
+        .filter((o) => {
+          if (o.scope === 'environment' && context.environment) return o.scopeId === context.environment;
+          if (o.scope === 'service' && context.service) return o.scopeId === context.service;
+          if (o.scope === 'tenant' && context.tenant) return o.scopeId === context.tenant;
+          if (o.scope === 'user' && context.user) return o.scopeId === context.user;
+          return false;
+        })
+        .sort((a, b) => b.priority - a.priority);
+
+      if (applicableOverrides.length > 0) {
+        return applicableOverrides[0].value;
+      }
+    }
+
+    return config.value;
   }
 
-  public getTemplateById(id: string): ConfigurationTemplate | undefined {
-    return this.templates.get(id);
+  public setConfig(key: string, value: ConfigValue, actor: string): ConfigurationItem {
+    let config = this.getConfigByKey(key);
+    
+    if (!config) {
+      config = {
+        id: `config-${this.generateId()}`,
+        key,
+        name: key,
+        description: '',
+        type: typeof value as ConfigType,
+        scope: 'global',
+        status: 'active',
+        value,
+        defaultValue: value,
+        schema: { type: typeof value as ConfigType },
+        overrides: [],
+        history: [],
+        dependencies: [],
+        tags: [],
+        category: 'custom',
+        sensitive: false,
+        encrypted: false,
+        validation: { required: false, rules: [] },
+        metadata: { createdAt: new Date(), createdBy: actor, updatedAt: new Date(), version: 1, source: 'api' },
+      };
+      this.configs.set(config.id, config);
+    } else {
+      const previousValue = config.value;
+      config.value = value;
+      config.metadata.version++;
+      config.metadata.updatedAt = new Date();
+      
+      config.history.unshift({
+        id: `hist-${this.generateId()}`,
+        timestamp: new Date(),
+        action: 'updated',
+        actor: { type: 'user', id: actor, name: actor },
+        previousValue,
+        newValue: value,
+        version: config.metadata.version,
+      });
+    }
+
+    this.emit('config.changed', { config, actor });
+    this.notifyWatches(config);
+    return config;
   }
 
-  // Environment Operations
-  public getEnvironments(): ConfigurationEnvironment[] {
-    return Array.from(this.environments.values());
-  }
-
-  public getEnvironmentById(id: string): ConfigurationEnvironment | undefined {
-    return this.environments.get(id);
+  private notifyWatches(config: ConfigurationItem): void {
+    Array.from(this.watches.values())
+      .filter((w) => w.enabled)
+      .filter((w) => w.keys.includes(config.key) || w.patterns.some((p) => new RegExp(p.replace('*', '.*')).test(config.key)))
+      .forEach((watch) => {
+        watch.lastTriggered = new Date();
+        watch.triggerCount++;
+        this.emit('watch.triggered', { watch, config });
+      });
   }
 
   // Namespace Operations
-  public getNamespaces(): ConfigurationNamespace[] {
+  public getNamespaces(): ConfigNamespace[] {
     return Array.from(this.namespaces.values());
   }
 
-  public getNamespaceById(id: string): ConfigurationNamespace | undefined {
+  public getNamespaceById(id: string): ConfigNamespace | undefined {
     return this.namespaces.get(id);
   }
 
-  // Change Request Operations
-  public getChangeRequests(status?: ConfigurationChangeRequest['status']): ConfigurationChangeRequest[] {
-    let requests = Array.from(this.changeRequests.values());
-    if (status) requests = requests.filter((r) => r.status === status);
-    return requests;
+  // Environment Operations
+  public getEnvironments(): EnvironmentConfiguration[] {
+    return Array.from(this.environments.values());
   }
 
-  public getChangeRequestById(id: string): ConfigurationChangeRequest | undefined {
-    return this.changeRequests.get(id);
+  public getEnvironmentById(id: string): EnvironmentConfiguration | undefined {
+    return this.environments.get(id);
+  }
+
+  public getEnvironmentByName(environment: Environment): EnvironmentConfiguration | undefined {
+    return Array.from(this.environments.values()).find((e) => e.environment === environment);
+  }
+
+  // Profile Operations
+  public getProfiles(active?: boolean): ConfigProfile[] {
+    let profiles = Array.from(this.profiles.values());
+    if (active !== undefined) profiles = profiles.filter((p) => p.active === active);
+    return profiles.sort((a, b) => b.priority - a.priority);
+  }
+
+  public getProfileById(id: string): ConfigProfile | undefined {
+    return this.profiles.get(id);
+  }
+
+  public activateProfile(id: string): ConfigProfile {
+    const profile = this.profiles.get(id);
+    if (!profile) throw new Error('Profile not found');
+    profile.active = true;
+    profile.metadata.activatedAt = new Date();
+    profile.metadata.updatedAt = new Date();
+    this.emit('profile.activated', profile);
+    return profile;
+  }
+
+  // Template Operations
+  public getTemplates(): ConfigTemplate[] {
+    return Array.from(this.templates.values());
+  }
+
+  public getTemplateById(id: string): ConfigTemplate | undefined {
+    return this.templates.get(id);
+  }
+
+  // Snapshot Operations
+  public getSnapshots(environment?: Environment): ConfigSnapshot[] {
+    let snapshots = Array.from(this.snapshots.values());
+    if (environment) snapshots = snapshots.filter((s) => s.environment === environment);
+    return snapshots.sort((a, b) => b.metadata.createdAt.getTime() - a.metadata.createdAt.getTime());
+  }
+
+  public getSnapshotById(id: string): ConfigSnapshot | undefined {
+    return this.snapshots.get(id);
+  }
+
+  public createSnapshot(name: string, environment: Environment, createdBy: string): ConfigSnapshot {
+    const snapshot: ConfigSnapshot = {
+      id: `snap-${this.generateId()}`,
+      name,
+      description: `Snapshot created at ${new Date().toISOString()}`,
+      environment,
+      configs: Object.fromEntries(Array.from(this.configs.values()).map((c) => [c.key, this.getValue(c.key, { environment })])),
+      profiles: Array.from(this.profiles.values()).filter((p) => p.active).map((p) => p.id),
+      version: `v${this.snapshots.size + 1}.0.0`,
+      tags: [environment, 'snapshot'],
+      metadata: {
+        createdAt: new Date(),
+        createdBy,
+        size: 0,
+        configCount: this.configs.size,
+      },
+    };
+    this.snapshots.set(snapshot.id, snapshot);
+    this.emit('snapshot.created', snapshot);
+    return snapshot;
+  }
+
+  // Deployment Operations
+  public getDeployments(status?: ConfigDeployment['status']): ConfigDeployment[] {
+    let deployments = Array.from(this.deployments.values());
+    if (status) deployments = deployments.filter((d) => d.status === status);
+    return deployments.sort((a, b) => b.metadata.createdAt.getTime() - a.metadata.createdAt.getTime());
+  }
+
+  public getDeploymentById(id: string): ConfigDeployment | undefined {
+    return this.deployments.get(id);
+  }
+
+  // Watch Operations
+  public getWatches(): ConfigWatch[] {
+    return Array.from(this.watches.values());
+  }
+
+  public getWatchById(id: string): ConfigWatch | undefined {
+    return this.watches.get(id);
+  }
+
+  // Client Operations
+  public getClients(status?: ConfigServiceClient['status']): ConfigServiceClient[] {
+    let clients = Array.from(this.clients.values());
+    if (status) clients = clients.filter((c) => c.status === status);
+    return clients;
+  }
+
+  public getClientById(id: string): ConfigServiceClient | undefined {
+    return this.clients.get(id);
+  }
+
+  // Audit Operations
+  public getAudits(configId?: string): ConfigAudit[] {
+    if (configId) {
+      return this.audits.get(configId) || [];
+    }
+    return Array.from(this.audits.values()).flat().sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
 
   // Statistics
   public getStatistics(): ConfigurationStatistics {
-    const configs = Array.from(this.configurations.values());
-    const requests = Array.from(this.changeRequests.values());
-
-    const byType: Record<ConfigurationType, number> = {
-      application: 0, environment: 0, feature: 0, secret: 0, runtime: 0, static: 0,
-    };
-    const byFormat: Record<ConfigurationFormat, number> = {
-      json: 0, yaml: 0, toml: 0, properties: 0, env: 0, xml: 0, hcl: 0,
-    };
-    const byStatus: Record<ConfigurationStatus, number> = {
-      draft: 0, pending: 0, active: 0, deprecated: 0, archived: 0,
-    };
-    const byEnvironment: Record<string, number> = {};
+    const configs = Array.from(this.configs.values());
+    const byType: Record<ConfigType, number> = {} as Record<ConfigType, number>;
+    const byScope: Record<ConfigScope, number> = {} as Record<ConfigScope, number>;
+    const byCategory: Record<string, number> = {};
 
     configs.forEach((c) => {
-      byType[c.type]++;
-      byFormat[c.format]++;
-      byStatus[c.status]++;
-      byEnvironment[c.environment] = (byEnvironment[c.environment] || 0) + 1;
+      byType[c.type] = (byType[c.type] || 0) + 1;
+      byScope[c.scope] = (byScope[c.scope] || 0) + 1;
+      byCategory[c.category] = (byCategory[c.category] || 0) + 1;
     });
+
+    const allAudits = Array.from(this.audits.values()).flat();
+    const clients = Array.from(this.clients.values());
 
     return {
       overview: {
-        totalConfigurations: configs.length,
-        activeConfigurations: byStatus.active,
-        draftConfigurations: byStatus.draft,
-        deprecatedConfigurations: byStatus.deprecated,
-        totalVersions: configs.reduce((sum, c) => sum + c.version.history.length, 0),
+        totalConfigs: configs.length,
+        activeConfigs: configs.filter((c) => c.status === 'active').length,
+        deprecatedConfigs: configs.filter((c) => c.status === 'deprecated').length,
+        sensitiveConfigs: configs.filter((c) => c.sensitive).length,
         totalNamespaces: this.namespaces.size,
-        totalEnvironments: this.environments.size,
       },
       byType,
-      byFormat,
-      byStatus,
-      byEnvironment,
-      changes: {
-        today: 5,
-        thisWeek: 25,
-        thisMonth: 100,
-        pendingApproval: requests.filter((r) => r.status === 'pending').length,
+      byScope,
+      byCategory,
+      activity: {
+        changesLast24h: allAudits.filter((a) => a.timestamp > new Date(Date.now() - 24 * 60 * 60 * 1000)).length,
+        changesLast7d: allAudits.filter((a) => a.timestamp > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length,
+        deploymentsLast7d: Array.from(this.deployments.values()).filter((d) => d.metadata.createdAt > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length,
+        activeWatches: Array.from(this.watches.values()).filter((w) => w.enabled).length,
       },
-      deployments: {
-        successful: configs.filter((c) => c.deployment.lastDeployment?.status === 'success').length,
-        failed: configs.filter((c) => c.deployment.lastDeployment?.status === 'failed').length,
-        rolledBack: configs.filter((c) => c.deployment.lastDeployment?.status === 'rolled_back').length,
-        avgDeploymentTime: 120,
+      clients: {
+        totalClients: clients.length,
+        connectedClients: clients.filter((c) => c.status === 'connected').length,
+        staleClients: clients.filter((c) => c.status === 'stale').length,
       },
-      validation: {
-        validConfigurations: configs.filter((c) => c.validation.lastValidation?.valid).length,
-        invalidConfigurations: configs.filter((c) => !c.validation.lastValidation?.valid).length,
-        totalValidations: configs.length * 5,
-        avgValidationTime: 15,
-      },
+      trends: [],
     };
   }
 
@@ -1048,71 +1157,31 @@ class ConfigurationService {
 
 export const configurationService = ConfigurationService.getInstance();
 export type {
-  ConfigurationType,
-  ConfigurationFormat,
-  ConfigurationStatus,
-  ChangeType,
-  Configuration,
-  ConfigurationVersion,
-  VersionHistoryEntry,
-  ConfigurationDiff,
-  DiffEntry,
-  ConfigurationContent,
-  ConfigurationReference,
-  ConfigurationSchema,
-  SchemaValidation,
-  ConfigurationInheritance,
-  ConfigurationDeployment,
-  DeploymentTarget,
-  TargetSelector,
-  DeploymentStrategy,
-  RolloutConfig,
-  HealthCheckConfig,
-  RolloutMetrics,
-  RollbackConfig,
-  DeploymentNotification,
-  DeploymentRecord,
-  ConfigurationValidation,
+  ConfigType,
+  ConfigScope,
+  ConfigStatus,
+  Environment,
+  ConfigurationItem,
+  ConfigValue,
+  ConfigSchema,
+  ConfigOverride,
+  OverrideCondition,
+  ConfigHistory,
+  ConfigDependency,
+  ConfigValidation,
   ValidationRule,
-  ValidationCondition,
-  ValidationResult,
-  ValidationError,
-  ValidationWarning,
-  ConfigurationAudit,
-  AuditEvent,
-  ConfigurationAccess,
-  AccessPermission,
-  AccessCondition,
-  ConfigApiKey,
-  AccessToken,
-  ConfigurationMetadata,
-  ConfigurationTemplate,
-  TemplateVariable,
-  TemplateExample,
-  TemplateUsage,
-  TemplateMetadata,
-  ConfigurationEnvironment,
+  ConfigNamespace,
+  NamespacePermission,
+  NamespaceSettings,
+  EnvironmentConfiguration,
   EnvironmentVariable,
-  EnvironmentSecret,
-  PromotionConfig,
-  EnvironmentProtection,
-  ProtectionRule,
-  BreakGlassConfig,
-  EnvironmentMetadata,
-  ConfigurationNamespace,
-  NamespaceQuota,
-  NamespacePolicy,
-  NamespaceAccess,
-  NamespaceMetadata,
-  ConfigurationChangeRequest,
-  ChangeRequestor,
-  ProposedChange,
-  ChangeReview,
-  Reviewer,
-  ReviewApproval,
-  ReviewComment,
-  ChangeImpact,
-  ChangeSchedule,
-  ChangeRequestMetadata,
+  ConfigProfile,
+  ConfigTemplate,
+  ConfigDiff,
+  ConfigSnapshot,
+  ConfigDeployment,
+  ConfigWatch,
+  ConfigAudit,
+  ConfigServiceClient,
   ConfigurationStatistics,
 };

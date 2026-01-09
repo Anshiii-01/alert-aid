@@ -625,7 +625,7 @@ class MultiStopEvacuationService {
    */
   public updateChecklist(planId: string, itemId: string, checked: boolean): boolean {
     const plan = this.plans.get(planId);
-    if (!plan) return null;
+    if (!plan) return false;
 
     const item = plan.checklist.find((i) => i.id === itemId);
     if (!item) return false;

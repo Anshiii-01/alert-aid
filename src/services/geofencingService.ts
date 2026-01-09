@@ -1,206 +1,345 @@
 /**
- * Geofencing Alert Service
- * Location-based automatic alerts when entering/exiting danger zones
+ * Geofencing Service
+ * Location-based triggers, zones, and proximity alerts for disaster management
  */
 
-// Geofence definition
-interface Geofence {
+// Zone type
+type ZoneType = 'danger' | 'evacuation' | 'safe' | 'shelter' | 'distribution' | 'hospital' | 'checkpoint' | 'restricted' | 'monitoring' | 'custom';
+
+// Zone status
+type ZoneStatus = 'active' | 'inactive' | 'pending' | 'expired' | 'archived';
+
+// Alert trigger type
+type TriggerType = 'enter' | 'exit' | 'dwell' | 'crossing' | 'proximity';
+
+// Shape type
+type ShapeType = 'circle' | 'polygon' | 'rectangle';
+
+// Coordinate
+interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+
+// Geofence zone
+interface GeofenceZone {
   id: string;
   name: string;
-  type: GeofenceType;
-  geometry: GeofenceGeometry;
-  alertLevel: 'info' | 'warning' | 'danger' | 'critical';
-  triggerOnEnter: boolean;
-  triggerOnExit: boolean;
-  triggerOnDwell: boolean;
-  dwellTime?: number; // milliseconds
-  active: boolean;
-  validFrom?: Date;
-  validUntil?: Date;
-  metadata: GeofenceMetadata;
+  description?: string;
+  type: ZoneType;
+  status: ZoneStatus;
+  priority: number;
+  shape: GeofenceShape;
+  boundingBox: BoundingBox;
+  triggers: ZoneTrigger[];
+  alertConfig: AlertConfig;
+  schedule?: ZoneSchedule;
+  capacity?: ZoneCapacity;
+  metadata: ZoneMetadata;
+  permissions: ZonePermission[];
+  parentZoneId?: string;
+  childZoneIds: string[];
+  relatedAlertId?: string;
+  relatedIncidentId?: string;
+  tags: string[];
+  createdBy: string;
+  expiresAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-type GeofenceType = 
-  | 'flood_zone'
-  | 'earthquake_zone'
-  | 'cyclone_path'
-  | 'evacuation_zone'
-  | 'safe_zone'
-  | 'restricted_area'
-  | 'relief_camp'
-  | 'medical_facility'
-  | 'shelter'
-  | 'custom';
-
-// Geometry types
-type GeofenceGeometry = 
-  | CircleGeometry 
-  | PolygonGeometry 
-  | CorridorGeometry;
-
-interface CircleGeometry {
-  type: 'circle';
-  center: { latitude: number; longitude: number };
-  radius: number; // meters
+// Geofence shape
+interface GeofenceShape {
+  type: ShapeType;
+  center?: Coordinate;
+  radius?: number; // in meters, for circle
+  coordinates?: Coordinate[]; // for polygon/rectangle
+  innerRadius?: number; // for ring/donut shape
 }
 
-interface PolygonGeometry {
-  type: 'polygon';
-  coordinates: { latitude: number; longitude: number }[];
+// Bounding box
+interface BoundingBox {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
 }
 
-interface CorridorGeometry {
-  type: 'corridor';
-  path: { latitude: number; longitude: number }[];
-  width: number; // meters
+// Zone trigger
+interface ZoneTrigger {
+  id: string;
+  type: TriggerType;
+  dwellTime?: number; // seconds, for dwell trigger
+  proximityDistance?: number; // meters, for proximity trigger
+  direction?: 'in' | 'out' | 'both'; // for crossing trigger
+  cooldown?: number; // seconds between triggers
+  conditions?: TriggerCondition[];
+  actions: TriggerAction[];
+  enabled: boolean;
 }
 
-// Metadata for geofence
-interface GeofenceMetadata {
-  disasterType?: string;
-  severity?: number;
-  instructions?: string[];
-  contacts?: EmergencyContact[];
-  nearestShelter?: string;
-  evacuationRoute?: string;
-  lastUpdated: Date;
+// Trigger condition
+interface TriggerCondition {
+  field: 'time' | 'day' | 'speed' | 'altitude' | 'accuracy' | 'user_role' | 'custom';
+  operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'between' | 'in';
+  value: unknown;
 }
 
-interface EmergencyContact {
-  name: string;
-  role: string;
-  phone: string;
+// Trigger action
+interface TriggerAction {
+  type: 'notification' | 'webhook' | 'alert' | 'sms' | 'email' | 'call' | 'log' | 'api_call';
+  config: Record<string, unknown>;
+  delay?: number; // seconds
+}
+
+// Alert config
+interface AlertConfig {
+  sendPush: boolean;
+  sendSms: boolean;
+  sendEmail: boolean;
+  sendVoice: boolean;
+  alertTemplate?: string;
+  customMessage?: string;
+  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
+  repeatInterval?: number; // minutes
+  maxRepeats?: number;
+}
+
+// Zone schedule
+interface ZoneSchedule {
+  type: 'always' | 'scheduled' | 'recurring';
+  startTime?: Date;
+  endTime?: Date;
+  recurringPattern?: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    daysOfWeek?: number[];
+    timeRanges?: { start: string; end: string }[];
+  };
+  timezone: string;
+}
+
+// Zone capacity
+interface ZoneCapacity {
+  maxOccupancy: number;
+  currentOccupancy: number;
+  alertThreshold: number; // percentage
+  overcrowdingAlert: boolean;
+}
+
+// Zone metadata
+interface ZoneMetadata {
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  landmark?: string;
+  contactPerson?: string;
+  contactPhone?: string;
+  facilities?: string[];
+  accessibility?: string[];
+  operatingHours?: string;
+  custom: Record<string, unknown>;
+}
+
+// Zone permission
+interface ZonePermission {
+  principalId: string;
+  principalType: 'user' | 'role' | 'group';
+  permissions: ('view' | 'edit' | 'delete' | 'manage_triggers' | 'view_events')[];
+}
+
+// Device location
+interface DeviceLocation {
+  deviceId: string;
+  userId?: string;
+  coordinate: Coordinate;
+  altitude?: number;
+  accuracy: number; // in meters
+  speed?: number; // in m/s
+  heading?: number; // in degrees
+  battery?: number; // percentage
+  timestamp: Date;
+  source: 'gps' | 'network' | 'wifi' | 'manual' | 'ip';
+  isMoving: boolean;
+  currentZones: string[];
+  metadata?: Record<string, unknown>;
 }
 
 // Geofence event
 interface GeofenceEvent {
   id: string;
-  geofenceId: string;
-  geofenceName: string;
-  eventType: 'enter' | 'exit' | 'dwell';
-  timestamp: Date;
-  location: { latitude: number; longitude: number };
-  alertLevel: string;
-  message: string;
-  acknowledged: boolean;
-}
-
-// User location tracking
-interface TrackedLocation {
-  latitude: number;
-  longitude: number;
+  type: TriggerType;
+  zoneId: string;
+  zoneName: string;
+  zoneType: ZoneType;
+  deviceId: string;
+  userId?: string;
+  triggerId: string;
+  coordinate: Coordinate;
   accuracy: number;
-  timestamp: Date;
   speed?: number;
-  heading?: number;
+  dwellDuration?: number;
+  previousZoneId?: string;
+  timestamp: Date;
+  processed: boolean;
+  actionsExecuted: { action: TriggerAction; status: 'success' | 'failed'; error?: string }[];
+  metadata?: Record<string, unknown>;
 }
 
-// Geofence monitoring status
-interface MonitoringStatus {
-  isActive: boolean;
-  geofencesMonitored: number;
-  currentLocation?: TrackedLocation;
-  activeGeofences: string[];
-  lastUpdate: Date;
+// Location history
+interface LocationHistory {
+  deviceId: string;
+  userId?: string;
+  locations: {
+    coordinate: Coordinate;
+    timestamp: Date;
+    accuracy: number;
+    zoneIds: string[];
+  }[];
+  startDate: Date;
+  endDate: Date;
+  totalDistance: number; // meters
+  totalTime: number; // seconds
 }
 
-// Alert configuration
-interface AlertConfig {
-  soundEnabled: boolean;
-  vibrationEnabled: boolean;
-  notificationEnabled: boolean;
-  autoAcknowledge: boolean;
-  acknowledgeTimeout: number;
-  repeatInterval: number;
+// Proximity alert
+interface ProximityAlert {
+  id: string;
+  name: string;
+  description?: string;
+  sourceType: 'device' | 'zone' | 'poi';
+  sourceId: string;
+  targetType: 'device' | 'zone' | 'poi';
+  targetIds: string[];
+  distance: number; // meters
+  triggerOn: 'entering' | 'leaving' | 'both';
+  alertConfig: AlertConfig;
+  enabled: boolean;
+  lastTriggered?: Date;
+  triggerCount: number;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-// Predefined danger zones for India
-const PREDEFINED_DANGER_ZONES: Partial<Geofence>[] = [
-  {
-    name: 'Brahmaputra Flood Plain',
-    type: 'flood_zone',
-    geometry: {
-      type: 'polygon',
-      coordinates: [
-        { latitude: 26.5, longitude: 89.5 },
-        { latitude: 27.5, longitude: 89.5 },
-        { latitude: 27.5, longitude: 95.0 },
-        { latitude: 26.5, longitude: 95.0 },
-      ],
-    },
-    alertLevel: 'warning',
-  },
-  {
-    name: 'Mumbai Coastal Zone',
-    type: 'cyclone_path',
-    geometry: {
-      type: 'corridor',
-      path: [
-        { latitude: 18.9, longitude: 72.8 },
-        { latitude: 19.1, longitude: 72.85 },
-        { latitude: 19.3, longitude: 72.9 },
-      ],
-      width: 10000,
-    },
-    alertLevel: 'danger',
-  },
-  {
-    name: 'Uttarakhand Landslide Zone',
-    type: 'restricted_area',
-    geometry: {
-      type: 'circle',
-      center: { latitude: 30.7, longitude: 79.0 },
-      radius: 50000,
-    },
-    alertLevel: 'warning',
-  },
-  {
-    name: 'Chennai Flood Zone',
-    type: 'flood_zone',
-    geometry: {
-      type: 'polygon',
-      coordinates: [
-        { latitude: 12.9, longitude: 80.1 },
-        { latitude: 13.2, longitude: 80.1 },
-        { latitude: 13.2, longitude: 80.3 },
-        { latitude: 12.9, longitude: 80.3 },
-      ],
-    },
-    alertLevel: 'warning',
-  },
-  {
-    name: 'Gujarat Earthquake Zone',
-    type: 'earthquake_zone',
-    geometry: {
-      type: 'circle',
-      center: { latitude: 23.0, longitude: 70.0 },
-      radius: 100000,
-    },
-    alertLevel: 'danger',
-  },
-];
+// Point of interest
+interface PointOfInterest {
+  id: string;
+  name: string;
+  description?: string;
+  category: 'hospital' | 'shelter' | 'fire_station' | 'police_station' | 'distribution_center' | 'evacuation_point' | 'landmark' | 'hazard' | 'other';
+  coordinate: Coordinate;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  operatingHours?: string;
+  capacity?: number;
+  currentOccupancy?: number;
+  services?: string[];
+  accessibility?: string[];
+  status: 'operational' | 'limited' | 'closed' | 'unknown';
+  verifiedAt?: Date;
+  verifiedBy?: string;
+  photos?: string[];
+  rating?: number;
+  reviews?: number;
+  metadata: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Route
+interface Route {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'evacuation' | 'supply' | 'patrol' | 'custom';
+  waypoints: Coordinate[];
+  distance: number; // meters
+  estimatedDuration: number; // seconds
+  status: 'active' | 'blocked' | 'congested' | 'unknown';
+  blockageInfo?: {
+    location: Coordinate;
+    reason: string;
+    reportedAt: Date;
+    reportedBy: string;
+  };
+  alternativeRouteId?: string;
+  zones: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Heatmap data
+interface HeatmapData {
+  timestamp: Date;
+  resolution: 'high' | 'medium' | 'low';
+  bounds: BoundingBox;
+  points: {
+    coordinate: Coordinate;
+    weight: number;
+    metadata?: Record<string, unknown>;
+  }[];
+}
+
+// Zone analytics
+interface ZoneAnalytics {
+  zoneId: string;
+  period: { start: Date; end: Date };
+  totalEvents: number;
+  uniqueDevices: number;
+  avgDwellTime: number;
+  peakOccupancy: number;
+  avgOccupancy: number;
+  entryExitRatio: number;
+  byEventType: { type: TriggerType; count: number }[];
+  byHour: { hour: number; entries: number; exits: number }[];
+  byDay: { date: string; entries: number; exits: number; avgOccupancy: number }[];
+  hotspots: { coordinate: Coordinate; eventCount: number }[];
+}
+
+// Geofencing settings
+interface GeofencingSettings {
+  defaultRadius: number;
+  minAccuracy: number;
+  updateInterval: number;
+  batchSize: number;
+  maxZonesPerDevice: number;
+  maxActiveZones: number;
+  eventRetention: number; // days
+  locationHistoryRetention: number; // days
+  enableBackgroundTracking: boolean;
+  enableBatteryOptimization: boolean;
+}
 
 class GeofencingService {
   private static instance: GeofencingService;
-  private geofences: Map<string, Geofence> = new Map();
-  private activeGeofences: Set<string> = new Set();
+  private zones: Map<string, GeofenceZone> = new Map();
+  private deviceLocations: Map<string, DeviceLocation> = new Map();
   private events: GeofenceEvent[] = [];
-  private watchId: number | null = null;
-  private dwellTimers: Map<string, NodeJS.Timeout> = new Map();
-  private lastLocation: TrackedLocation | null = null;
-  private alertConfig: AlertConfig = {
-    soundEnabled: true,
-    vibrationEnabled: true,
-    notificationEnabled: true,
-    autoAcknowledge: false,
-    acknowledgeTimeout: 30000,
-    repeatInterval: 60000,
-  };
-  private eventCallbacks: ((event: GeofenceEvent) => void)[] = [];
-  private statusCallbacks: ((status: MonitoringStatus) => void)[] = [];
+  private proximityAlerts: Map<string, ProximityAlert> = new Map();
+  private pois: Map<string, PointOfInterest> = new Map();
+  private routes: Map<string, Route> = new Map();
+  private locationHistories: Map<string, LocationHistory> = new Map();
+  private settings: GeofencingSettings;
+  private listeners: ((event: string, data: unknown) => void)[] = [];
 
   private constructor() {
-    this.initializePredefinedZones();
+    this.settings = {
+      defaultRadius: 500,
+      minAccuracy: 100,
+      updateInterval: 30,
+      batchSize: 100,
+      maxZonesPerDevice: 50,
+      maxActiveZones: 1000,
+      eventRetention: 90,
+      locationHistoryRetention: 30,
+      enableBackgroundTracking: true,
+      enableBatteryOptimization: true,
+    };
+    this.initializeSampleData();
   }
 
   public static getInstance(): GeofencingService {
@@ -449,413 +588,504 @@ class GeofencingService {
       const xj = polygon[j].longitude;
       const yj = polygon[j].latitude;
 
-      const intersect = ((yi > y) !== (yj > y)) &&
-        (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-      
+      const intersect =
+        yi > point.latitude !== yj > point.latitude &&
+        point.longitude < ((xj - xi) * (point.latitude - yi)) / (yj - yi) + xi;
+
       if (intersect) inside = !inside;
     }
-
     return inside;
   }
 
   /**
-   * Check if inside corridor geofence
+   * Create zone
    */
-  private isInsideCorridor(geometry: CorridorGeometry, location: TrackedLocation): boolean {
-    const { path, width } = geometry;
-    const halfWidth = width / 2;
+  public createZone(data: Omit<GeofenceZone, 'id' | 'boundingBox' | 'childZoneIds' | 'createdAt' | 'updatedAt'>): GeofenceZone {
+    const id = `zone-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
 
-    for (let i = 0; i < path.length - 1; i++) {
-      const distance = this.pointToLineDistance(
-        location.latitude,
-        location.longitude,
-        path[i].latitude,
-        path[i].longitude,
-        path[i + 1].latitude,
-        path[i + 1].longitude
-      );
+    const boundingBox = this.calculateBoundingBox(data.shape);
 
-      if (distance <= halfWidth) return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Calculate distance between two points (Haversine formula)
-   */
-  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371000; // Earth's radius in meters
-    const dLat = this.toRad(lat2 - lat1);
-    const dLon = this.toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  /**
-   * Calculate perpendicular distance from point to line segment
-   */
-  private pointToLineDistance(
-    px: number, py: number,
-    x1: number, y1: number,
-    x2: number, y2: number
-  ): number {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const lengthSq = dx * dx + dy * dy;
-
-    let t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSq));
-
-    const nearestX = x1 + t * dx;
-    const nearestY = y1 + t * dy;
-
-    return this.calculateDistance(px, py, nearestX, nearestY);
-  }
-
-  private toRad(deg: number): number {
-    return deg * (Math.PI / 180);
-  }
-
-  /**
-   * Start dwell timer for geofence
-   */
-  private startDwellTimer(geofence: Geofence, location: TrackedLocation): void {
-    this.clearDwellTimer(geofence.id);
-
-    const timer = setTimeout(() => {
-      if (this.activeGeofences.has(geofence.id)) {
-        this.triggerEvent(geofence, 'dwell', location);
-      }
-    }, geofence.dwellTime!);
-
-    this.dwellTimers.set(geofence.id, timer);
-  }
-
-  /**
-   * Clear dwell timer
-   */
-  private clearDwellTimer(geofenceId: string): void {
-    const timer = this.dwellTimers.get(geofenceId);
-    if (timer) {
-      clearTimeout(timer);
-      this.dwellTimers.delete(geofenceId);
-    }
-  }
-
-  /**
-   * Trigger geofence event
-   */
-  private triggerEvent(
-    geofence: Geofence,
-    eventType: 'enter' | 'exit' | 'dwell',
-    location: TrackedLocation
-  ): void {
-    const event: GeofenceEvent = {
-      id: `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      geofenceId: geofence.id,
-      geofenceName: geofence.name,
-      eventType,
-      timestamp: new Date(),
-      location: { latitude: location.latitude, longitude: location.longitude },
-      alertLevel: geofence.alertLevel,
-      message: this.generateAlertMessage(geofence, eventType),
-      acknowledged: false,
+    const zone: GeofenceZone = {
+      ...data,
+      id,
+      boundingBox,
+      childZoneIds: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    this.events.push(event);
+    this.zones.set(id, zone);
+    this.emit('zone_created', zone);
 
-    // Trigger alert
-    this.triggerAlert(event, geofence);
-
-    // Notify callbacks
-    this.eventCallbacks.forEach((callback) => callback(event));
+    return zone;
   }
 
   /**
-   * Generate alert message
+   * Calculate bounding box
    */
-  private generateAlertMessage(geofence: Geofence, eventType: 'enter' | 'exit' | 'dwell'): string {
-    const action = eventType === 'enter' ? 'entered' : eventType === 'exit' ? 'exited' : 'dwelling in';
-    let message = `You have ${action} ${geofence.name}`;
-
-    switch (geofence.type) {
-      case 'flood_zone':
-        message += eventType === 'enter' 
-          ? '. Flood risk area - stay alert and monitor water levels.'
-          : '. You have left the flood risk area.';
-        break;
-      case 'earthquake_zone':
-        message += eventType === 'enter'
-          ? '. High seismic activity zone - be prepared for tremors.'
-          : '. You have left the high seismic zone.';
-        break;
-      case 'cyclone_path':
-        message += eventType === 'enter'
-          ? '. Cyclone path warning - seek shelter immediately.'
-          : '. You have left the cyclone path zone.';
-        break;
-      case 'evacuation_zone':
-        message += eventType === 'enter'
-          ? '. Evacuation in progress - follow marked routes.'
-          : '. You have exited the evacuation zone.';
-        break;
-      case 'safe_zone':
-        message += eventType === 'enter'
-          ? '. You are now in a designated safe zone.'
-          : '. You have left the safe zone - exercise caution.';
-        break;
-      case 'relief_camp':
-        message += eventType === 'enter'
-          ? '. Relief camp nearby - assistance available.'
-          : '. You have left the relief camp area.';
-        break;
-      default:
-        break;
+  private calculateBoundingBox(shape: GeofenceShape): BoundingBox {
+    if (shape.type === 'circle' && shape.center && shape.radius) {
+      const latDelta = (shape.radius / 111320);
+      const lonDelta = shape.radius / (111320 * Math.cos(this.toRadians(shape.center.latitude)));
+      return {
+        north: shape.center.latitude + latDelta,
+        south: shape.center.latitude - latDelta,
+        east: shape.center.longitude + lonDelta,
+        west: shape.center.longitude - lonDelta,
+      };
     }
 
-    if (geofence.metadata.instructions && geofence.metadata.instructions.length > 0) {
-      message += ` Instructions: ${geofence.metadata.instructions[0]}`;
+    if (shape.coordinates && shape.coordinates.length > 0) {
+      const lats = shape.coordinates.map((c) => c.latitude);
+      const lons = shape.coordinates.map((c) => c.longitude);
+      return {
+        north: Math.max(...lats),
+        south: Math.min(...lats),
+        east: Math.max(...lons),
+        west: Math.min(...lons),
+      };
     }
 
-    return message;
+    return { north: 0, south: 0, east: 0, west: 0 };
   }
 
   /**
-   * Trigger alert (sound, vibration, notification)
+   * Update zone
    */
-  private triggerAlert(event: GeofenceEvent, geofence: Geofence): void {
-    // Vibration
-    if (this.alertConfig.vibrationEnabled && navigator.vibrate) {
-      const pattern = event.alertLevel === 'critical' 
-        ? [200, 100, 200, 100, 200]
-        : event.alertLevel === 'danger'
-        ? [200, 100, 200]
-        : [200];
-      navigator.vibrate(pattern);
+  public updateZone(zoneId: string, updates: Partial<Omit<GeofenceZone, 'id' | 'createdAt' | 'updatedAt'>>): GeofenceZone | null {
+    const zone = this.zones.get(zoneId);
+    if (!zone) return null;
+
+    Object.assign(zone, updates);
+
+    if (updates.shape) {
+      zone.boundingBox = this.calculateBoundingBox(updates.shape);
     }
 
-    // Notification
-    if (this.alertConfig.notificationEnabled && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        new Notification(`Alert: ${geofence.name}`, {
-          body: event.message,
-          icon: '/alert-icon.png',
-          tag: event.id,
-          requireInteraction: event.alertLevel === 'critical',
+    zone.updatedAt = new Date();
+
+    this.emit('zone_updated', zone);
+    return zone;
+  }
+
+  /**
+   * Delete zone
+   */
+  public deleteZone(zoneId: string): boolean {
+    const zone = this.zones.get(zoneId);
+    if (!zone) return false;
+
+    this.zones.delete(zoneId);
+    this.emit('zone_deleted', { zoneId });
+
+    return true;
+  }
+
+  /**
+   * Get zone
+   */
+  public getZone(zoneId: string): GeofenceZone | undefined {
+    return this.zones.get(zoneId);
+  }
+
+  /**
+   * Get zones
+   */
+  public getZones(filters?: {
+    type?: ZoneType;
+    status?: ZoneStatus;
+    bounds?: BoundingBox;
+    tags?: string[];
+  }): GeofenceZone[] {
+    let zones = Array.from(this.zones.values());
+
+    if (filters?.type) {
+      zones = zones.filter((z) => z.type === filters.type);
+    }
+
+    if (filters?.status) {
+      zones = zones.filter((z) => z.status === filters.status);
+    }
+
+    if (filters?.bounds) {
+      zones = zones.filter((z) => this.boundingBoxesOverlap(z.boundingBox, filters.bounds!));
+    }
+
+    if (filters?.tags?.length) {
+      zones = zones.filter((z) => filters.tags!.some((tag) => z.tags.includes(tag)));
+    }
+
+    return zones.sort((a, b) => a.priority - b.priority);
+  }
+
+  /**
+   * Check if bounding boxes overlap
+   */
+  private boundingBoxesOverlap(box1: BoundingBox, box2: BoundingBox): boolean {
+    return !(
+      box1.east < box2.west ||
+      box1.west > box2.east ||
+      box1.north < box2.south ||
+      box1.south > box2.north
+    );
+  }
+
+  /**
+   * Update device location
+   */
+  public updateDeviceLocation(data: {
+    deviceId: string;
+    userId?: string;
+    coordinate: Coordinate;
+    accuracy: number;
+    altitude?: number;
+    speed?: number;
+    heading?: number;
+    battery?: number;
+    source?: DeviceLocation['source'];
+  }): { location: DeviceLocation; events: GeofenceEvent[] } {
+    const previousLocation = this.deviceLocations.get(data.deviceId);
+    const previousZones = previousLocation?.currentZones || [];
+
+    const currentZones: string[] = [];
+    const events: GeofenceEvent[] = [];
+
+    // Check which zones the device is now in
+    this.zones.forEach((zone, zoneId) => {
+      if (zone.status !== 'active') return;
+
+      const isInZone = this.isPointInZone(data.coordinate, zone);
+
+      if (isInZone) {
+        currentZones.push(zoneId);
+
+        // Check for enter event
+        if (!previousZones.includes(zoneId)) {
+          const enterTriggers = zone.triggers.filter((t) => t.type === 'enter' && t.enabled);
+          enterTriggers.forEach((trigger) => {
+            const event = this.createEvent('enter', zone, zoneId, data, trigger);
+            events.push(event);
+          });
+        }
+      } else if (previousZones.includes(zoneId)) {
+        // Check for exit event
+        const exitTriggers = zone.triggers.filter((t) => t.type === 'exit' && t.enabled);
+        exitTriggers.forEach((trigger) => {
+          const event = this.createEvent('exit', zone, zoneId, data, trigger);
+          events.push(event);
         });
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission();
       }
-    }
+    });
 
-    // Auto-acknowledge
-    if (this.alertConfig.autoAcknowledge) {
-      setTimeout(() => {
-        this.acknowledgeEvent(event.id);
-      }, this.alertConfig.acknowledgeTimeout);
-    }
+    const location: DeviceLocation = {
+      deviceId: data.deviceId,
+      userId: data.userId,
+      coordinate: data.coordinate,
+      altitude: data.altitude,
+      accuracy: data.accuracy,
+      speed: data.speed,
+      heading: data.heading,
+      battery: data.battery,
+      timestamp: new Date(),
+      source: data.source || 'gps',
+      isMoving: (data.speed || 0) > 0.5,
+      currentZones,
+    };
+
+    this.deviceLocations.set(data.deviceId, location);
+
+    // Process events
+    events.forEach((event) => {
+      this.events.push(event);
+      this.emit('geofence_event', event);
+    });
+
+    return { location, events };
   }
 
   /**
-   * Acknowledge event
+   * Create event
    */
-  public acknowledgeEvent(eventId: string): boolean {
-    const event = this.events.find((e) => e.id === eventId);
-    if (event) {
-      event.acknowledged = true;
-      return true;
-    }
-    return false;
+  private createEvent(
+    type: TriggerType,
+    zone: GeofenceZone,
+    zoneId: string,
+    locationData: { deviceId: string; userId?: string; coordinate: Coordinate; accuracy: number; speed?: number },
+    trigger: ZoneTrigger
+  ): GeofenceEvent {
+    return {
+      id: `evt-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`,
+      type,
+      zoneId,
+      zoneName: zone.name,
+      zoneType: zone.type,
+      deviceId: locationData.deviceId,
+      userId: locationData.userId,
+      triggerId: trigger.id,
+      coordinate: locationData.coordinate,
+      accuracy: locationData.accuracy,
+      speed: locationData.speed,
+      timestamp: new Date(),
+      processed: false,
+      actionsExecuted: [],
+    };
   }
 
   /**
-   * Get all geofences
+   * Get device location
    */
-  public getGeofences(): Geofence[] {
-    return Array.from(this.geofences.values());
+  public getDeviceLocation(deviceId: string): DeviceLocation | undefined {
+    return this.deviceLocations.get(deviceId);
   }
 
   /**
-   * Get geofence by ID
+   * Get devices in zone
    */
-  public getGeofence(id: string): Geofence | undefined {
-    return this.geofences.get(id);
-  }
-
-  /**
-   * Get active geofences (user is currently inside)
-   */
-  public getActiveGeofences(): Geofence[] {
-    return Array.from(this.activeGeofences)
-      .map((id) => this.geofences.get(id))
-      .filter((g): g is Geofence => g !== undefined);
+  public getDevicesInZone(zoneId: string): DeviceLocation[] {
+    return Array.from(this.deviceLocations.values())
+      .filter((loc) => loc.currentZones.includes(zoneId));
   }
 
   /**
    * Get events
    */
-  public getEvents(limit?: number): GeofenceEvent[] {
-    const sorted = [...this.events].sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
-    );
-    return limit ? sorted.slice(0, limit) : sorted;
-  }
+  public getEvents(filters?: {
+    zoneId?: string;
+    deviceId?: string;
+    type?: TriggerType;
+    dateRange?: { start: Date; end: Date };
+  }, page: number = 1, pageSize: number = 50): { events: GeofenceEvent[]; total: number } {
+    let events = [...this.events];
 
-  /**
-   * Get unacknowledged events
-   */
-  public getUnacknowledgedEvents(): GeofenceEvent[] {
-    return this.events.filter((e) => !e.acknowledged);
-  }
+    if (filters?.zoneId) {
+      events = events.filter((e) => e.zoneId === filters.zoneId);
+    }
 
-  /**
-   * Get monitoring status
-   */
-  public getStatus(): MonitoringStatus {
+    if (filters?.deviceId) {
+      events = events.filter((e) => e.deviceId === filters.deviceId);
+    }
+
+    if (filters?.type) {
+      events = events.filter((e) => e.type === filters.type);
+    }
+
+    if (filters?.dateRange) {
+      events = events.filter((e) =>
+        e.timestamp >= filters.dateRange!.start && e.timestamp <= filters.dateRange!.end
+      );
+    }
+
+    events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+    const total = events.length;
+    const startIndex = (page - 1) * pageSize;
+
     return {
-      isActive: this.watchId !== null,
-      geofencesMonitored: Array.from(this.geofences.values()).filter((g) => g.active).length,
-      currentLocation: this.lastLocation ?? undefined,
-      activeGeofences: Array.from(this.activeGeofences),
-      lastUpdate: new Date(),
+      events: events.slice(startIndex, startIndex + pageSize),
+      total,
     };
   }
 
   /**
-   * Update alert configuration
+   * Get zone analytics
    */
-  public setAlertConfig(config: Partial<AlertConfig>): void {
-    this.alertConfig = { ...this.alertConfig, ...config };
+  public getZoneAnalytics(zoneId: string, period: { start: Date; end: Date }): ZoneAnalytics {
+    const zoneEvents = this.events.filter(
+      (e) => e.zoneId === zoneId && e.timestamp >= period.start && e.timestamp <= period.end
+    );
+
+    const uniqueDevices = new Set(zoneEvents.map((e) => e.deviceId)).size;
+    const dwellEvents = zoneEvents.filter((e) => e.type === 'dwell' && e.dwellDuration);
+    const avgDwellTime = dwellEvents.length > 0
+      ? dwellEvents.reduce((sum, e) => sum + (e.dwellDuration || 0), 0) / dwellEvents.length
+      : 0;
+
+    const byEventType = new Map<TriggerType, number>();
+    const byHour = new Map<number, { entries: number; exits: number }>();
+    const byDay = new Map<string, { entries: number; exits: number; avgOccupancy: number }>();
+
+    zoneEvents.forEach((event) => {
+      byEventType.set(event.type, (byEventType.get(event.type) || 0) + 1);
+
+      const hour = event.timestamp.getHours();
+      const hourStats = byHour.get(hour) || { entries: 0, exits: 0 };
+      if (event.type === 'enter') hourStats.entries++;
+      if (event.type === 'exit') hourStats.exits++;
+      byHour.set(hour, hourStats);
+
+      const day = event.timestamp.toISOString().split('T')[0];
+      const dayStats = byDay.get(day) || { entries: 0, exits: 0, avgOccupancy: 0 };
+      if (event.type === 'enter') dayStats.entries++;
+      if (event.type === 'exit') dayStats.exits++;
+      byDay.set(day, dayStats);
+    });
+
+    const entries = zoneEvents.filter((e) => e.type === 'enter').length;
+    const exits = zoneEvents.filter((e) => e.type === 'exit').length;
+
+    return {
+      zoneId,
+      period,
+      totalEvents: zoneEvents.length,
+      uniqueDevices,
+      avgDwellTime,
+      peakOccupancy: Math.max(...Array.from(byHour.values()).map((h) => h.entries - h.exits)),
+      avgOccupancy: uniqueDevices / Math.max(1, (period.end.getTime() - period.start.getTime()) / (24 * 60 * 60 * 1000)),
+      entryExitRatio: exits > 0 ? entries / exits : entries,
+      byEventType: Array.from(byEventType.entries()).map(([type, count]) => ({ type, count })),
+      byHour: Array.from(byHour.entries()).map(([hour, stats]) => ({ hour, ...stats })),
+      byDay: Array.from(byDay.entries()).map(([date, stats]) => ({ date, ...stats })),
+      hotspots: [],
+    };
   }
 
   /**
-   * Get alert configuration
+   * Get POIs
    */
-  public getAlertConfig(): AlertConfig {
-    return { ...this.alertConfig };
+  public getPOIs(filters?: {
+    category?: PointOfInterest['category'];
+    bounds?: BoundingBox;
+    status?: PointOfInterest['status'];
+  }): PointOfInterest[] {
+    let pois = Array.from(this.pois.values());
+
+    if (filters?.category) {
+      pois = pois.filter((p) => p.category === filters.category);
+    }
+
+    if (filters?.status) {
+      pois = pois.filter((p) => p.status === filters.status);
+    }
+
+    if (filters?.bounds) {
+      pois = pois.filter((p) =>
+        p.coordinate.latitude >= filters.bounds!.south &&
+        p.coordinate.latitude <= filters.bounds!.north &&
+        p.coordinate.longitude >= filters.bounds!.west &&
+        p.coordinate.longitude <= filters.bounds!.east
+      );
+    }
+
+    return pois;
+  }
+
+  /**
+   * Find nearest POIs
+   */
+  public findNearestPOIs(coordinate: Coordinate, category?: PointOfInterest['category'], limit: number = 5): { poi: PointOfInterest; distance: number }[] {
+    let pois = Array.from(this.pois.values());
+
+    if (category) {
+      pois = pois.filter((p) => p.category === category);
+    }
+
+    return pois
+      .map((poi) => ({
+        poi,
+        distance: this.calculateDistance(coordinate, poi.coordinate),
+      }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, limit);
+  }
+
+  /**
+   * Get routes
+   */
+  public getRoutes(type?: Route['type']): Route[] {
+    let routes = Array.from(this.routes.values());
+    if (type) {
+      routes = routes.filter((r) => r.type === type);
+    }
+    return routes;
+  }
+
+  /**
+   * Generate heatmap data
+   */
+  public generateHeatmap(bounds: BoundingBox, resolution: 'high' | 'medium' | 'low'): HeatmapData {
+    const points: HeatmapData['points'] = [];
+
+    this.events.forEach((event) => {
+      if (
+        event.coordinate.latitude >= bounds.south &&
+        event.coordinate.latitude <= bounds.north &&
+        event.coordinate.longitude >= bounds.west &&
+        event.coordinate.longitude <= bounds.east
+      ) {
+        points.push({
+          coordinate: event.coordinate,
+          weight: event.type === 'dwell' ? 2 : 1,
+        });
+      }
+    });
+
+    return {
+      timestamp: new Date(),
+      resolution,
+      bounds,
+      points,
+    };
+  }
+
+  /**
+   * Get settings
+   */
+  public getSettings(): GeofencingSettings {
+    return { ...this.settings };
+  }
+
+  /**
+   * Update settings
+   */
+  public updateSettings(updates: Partial<GeofencingSettings>): void {
+    Object.assign(this.settings, updates);
+    this.emit('settings_updated', this.settings);
   }
 
   /**
    * Subscribe to events
    */
-  public onEvent(callback: (event: GeofenceEvent) => void): () => void {
-    this.eventCallbacks.push(callback);
+  public subscribe(callback: (event: string, data: unknown) => void): () => void {
+    this.listeners.push(callback);
     return () => {
-      const index = this.eventCallbacks.indexOf(callback);
-      if (index > -1) this.eventCallbacks.splice(index, 1);
+      const index = this.listeners.indexOf(callback);
+      if (index > -1) this.listeners.splice(index, 1);
     };
   }
 
   /**
-   * Subscribe to status changes
+   * Emit event
    */
-  public onStatusChange(callback: (status: MonitoringStatus) => void): () => void {
-    this.statusCallbacks.push(callback);
-    return () => {
-      const index = this.statusCallbacks.indexOf(callback);
-      if (index > -1) this.statusCallbacks.splice(index, 1);
-    };
-  }
-
-  /**
-   * Notify status change
-   */
-  private notifyStatusChange(): void {
-    const status = this.getStatus();
-    this.statusCallbacks.forEach((callback) => callback(status));
-  }
-
-  /**
-   * Check if a point is inside any active danger zone
-   */
-  public isInDangerZone(latitude: number, longitude: number): {
-    inDanger: boolean;
-    zones: Geofence[];
-  } {
-    const location: TrackedLocation = {
-      latitude,
-      longitude,
-      accuracy: 0,
-      timestamp: new Date(),
-    };
-
-    const dangerZones = Array.from(this.geofences.values())
-      .filter((g) => 
-        g.active && 
-        (g.alertLevel === 'danger' || g.alertLevel === 'critical') &&
-        this.isInsideGeofence(g, location)
-      );
-
-    return {
-      inDanger: dangerZones.length > 0,
-      zones: dangerZones,
-    };
-  }
-
-  /**
-   * Get nearest safe zone
-   */
-  public getNearestSafeZone(latitude: number, longitude: number): Geofence | null {
-    const safeZones = Array.from(this.geofences.values())
-      .filter((g) => g.active && g.type === 'safe_zone');
-
-    if (safeZones.length === 0) return null;
-
-    let nearest: Geofence | null = null;
-    let minDistance = Infinity;
-
-    for (const zone of safeZones) {
-      const center = this.getGeofenceCenter(zone);
-      const distance = this.calculateDistance(latitude, longitude, center.latitude, center.longitude);
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearest = zone;
-      }
-    }
-
-    return nearest;
-  }
-
-  /**
-   * Get geofence center point
-   */
-  private getGeofenceCenter(geofence: Geofence): { latitude: number; longitude: number } {
-    switch (geofence.geometry.type) {
-      case 'circle':
-        return geofence.geometry.center;
-      case 'polygon': {
-        const coords = geofence.geometry.coordinates;
-        const lat = coords.reduce((sum, c) => sum + c.latitude, 0) / coords.length;
-        const lng = coords.reduce((sum, c) => sum + c.longitude, 0) / coords.length;
-        return { latitude: lat, longitude: lng };
-      }
-      case 'corridor': {
-        const path = geofence.geometry.path;
-        const midIndex = Math.floor(path.length / 2);
-        return path[midIndex];
-      }
-    }
-  }
-
-  /**
-   * Clear all events
-   */
-  public clearEvents(): void {
-    this.events = [];
+  private emit(event: string, data: unknown): void {
+    this.listeners.forEach((callback) => callback(event, data));
   }
 }
 
 export const geofencingService = GeofencingService.getInstance();
 export type {
-  Geofence,
-  GeofenceType,
-  GeofenceGeometry,
-  GeofenceEvent,
-  MonitoringStatus,
+  ZoneType,
+  ZoneStatus,
+  TriggerType,
+  ShapeType,
+  Coordinate,
+  GeofenceZone,
+  GeofenceShape,
+  BoundingBox,
+  ZoneTrigger,
+  TriggerCondition,
+  TriggerAction,
   AlertConfig,
-  TrackedLocation,
+  ZoneSchedule,
+  ZoneCapacity,
+  ZoneMetadata,
+  ZonePermission,
+  DeviceLocation,
+  GeofenceEvent,
+  LocationHistory,
+  ProximityAlert,
+  PointOfInterest,
+  Route,
+  HeatmapData,
+  ZoneAnalytics,
+  GeofencingSettings,
 };

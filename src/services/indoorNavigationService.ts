@@ -756,7 +756,7 @@ class IndoorNavigationService {
    */
   public getEmergencyExits(): NavNode[] {
     if (!this.currentBuilding) return [];
-    return this.currentBuilding.nodes.filter((n) => n.type === 'emergency_exit');
+    return (this.currentBuilding.nodes as NavNode[]).filter((n: NavNode) => n.type === 'emergency_exit');
   }
 
   /**
@@ -768,14 +768,14 @@ class IndoorNavigationService {
     const point = fromPoint || this.currentPosition;
     if (!point) return null;
 
-    const exits = this.getEmergencyExits();
+    const exits: NavNode[] = this.getEmergencyExits();
     if (exits.length === 0) return null;
 
     // Find nearest exit
     let nearestExit: NavNode | null = null;
     let minDistance = Infinity;
 
-    exits.forEach((exit) => {
+    exits.forEach((exit: NavNode) => {
       const distance = this.calculateDistance(point, exit.point);
       if (distance < minDistance) {
         minDistance = distance;
@@ -783,9 +783,9 @@ class IndoorNavigationService {
       }
     });
 
-    if (!nearestExit) return null;
+    if (!nearestExit || !('point' in nearestExit)) return null;
 
-    return this.findRoute(point, nearestExit.point, { avoidStairs: false, wheelchairAccess: false, visualAssist: false, preferElevator: false, avoidCrowded: false });
+    return this.findRoute(point, (nearestExit as NavNode).point, { avoidStairs: false, wheelchairAccess: false, visualAssist: false, preferElevator: false, avoidCrowded: false });
   }
 
   /**

@@ -381,7 +381,13 @@ class WorkflowAutomationService {
           category: t.category,
         },
         requiredIntegrations: t.requiredIntegrations,
-        documentation: `# ${t.name}\n\n${t.description}\n\n## Setup\n\nConfigure the required integrations before using this template.`,
+        documentation: `# ${t.name}
+
+${t.description}
+
+## Setup
+
+Configure the required integrations before using this template.`,
         popularity: Math.floor(Math.random() * 1000) + 100,
         createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
       };
@@ -547,7 +553,7 @@ class WorkflowAutomationService {
             id: 'step-3',
             name: 'Assign Task',
             type: 'assign_task',
-            config: { assigneeType: 'round_robin', assignees: '{{volunteers}}', taskTitle: '{{task.title}}', priority: 1 },
+            config: { assigneeType: 'round_robin', assignees: ['{{volunteers}}'] as any, taskTitle: '{{task.title}}', priority: 1 },
             errorHandling: { onError: 'continue' },
             nextSteps: ['step-4'],
             position: { x: 100, y: 300 },

@@ -928,12 +928,24 @@ class MultilingualService {
    */
   public formatDate(date: Date, format: 'short' | 'medium' | 'long' | 'full' = 'medium', language?: LanguageCode): string {
     const lang = this.languages.get(language || this.currentLanguage);
-    const options: Intl.DateTimeFormatOptions = {
-      short: { day: '2-digit', month: '2-digit', year: 'numeric' },
-      medium: { day: '2-digit', month: 'short', year: 'numeric' },
-      long: { day: '2-digit', month: 'long', year: 'numeric' },
-      full: { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' },
-    }[format];
+    
+    let options: Intl.DateTimeFormatOptions;
+    switch(format) {
+      case 'short':
+        options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        break;
+      case 'medium':
+        options = { day: '2-digit', month: 'short', year: 'numeric' };
+        break;
+      case 'long':
+        options = { day: '2-digit', month: 'long', year: 'numeric' };
+        break;
+      case 'full':
+        options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+        break;
+      default:
+        options = { day: '2-digit', month: 'short', year: 'numeric' };
+    }
 
     return new Intl.DateTimeFormat(this.getLocale(lang?.code || 'en'), options).format(date);
   }

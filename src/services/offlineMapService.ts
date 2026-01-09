@@ -682,7 +682,8 @@ class OfflineMapService {
    * Check if location has offline coverage
    */
   public hasOfflineCoverage(lat: number, lng: number, zoom: number): boolean {
-    for (const region of this.regions.values()) {
+    const regionsArray = Array.from(this.regions.values());
+    for (const region of regionsArray) {
       if (
         region.status === 'completed' &&
         lat >= region.bounds.south &&
