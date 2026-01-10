@@ -12,7 +12,7 @@ Features:
 - Caching for performance
 """
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -1225,6 +1225,123 @@ async def flood_predict(
         logger.error(f"Flood prediction error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# WebSocket connection manager for real-time alerts
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except Exception as e:
+                logger.error(f"Failed to send message to websocket: {e}")
+                # Remove broken connections
+                self.active_connections.remove(connection)
+
+# Global WebSocket manager
+manager = ConnectionManager()
+
+@app.websocket("/ws/alerts")
+async def websocket_alerts(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time disaster alerts
+    Clients can subscribe to receive live alerts as they occur
+    """
+    await manager.connect(websocket)
+    try:
+        # Send initial connection confirmation
+        await websocket.send_json({
+            "type": "connection_established",
+            "message": "Connected to Alert Aid real-time alerts",
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # Keep connection alive and listen for messages
+        while True:
+            try:
+                # Wait for client messages (optional - clients can just listen)
+                data = await websocket.receive_text()
+                # Handle any client messages if needed
+                logger.info(f"Received message from client: {data}")
+            except WebSocketDisconnect:
+                logger.info("WebSocket client disconnected")
+                break
+            except Exception as e:
+                logger.error(f"WebSocket error: {e}")
+                break
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected")
+    finally:
+        manager.disconnect(websocket)
+
+# Background task to simulate real-time alerts
+async def alert_broadcast_task():
+    """Background task to periodically broadcast simulated alerts"""
+    while True:
+        try:
+            # Generate random alerts periodically
+            if random.random() < 0.1:  # 10% chance every 30 seconds
+                alert_types = [
+                    {
+                        "type": "weather_alert",
+                        "title": "Heavy Rain Warning",
+                        "description": "Heavy rainfall expected in the next 2 hours",
+                        "severity": "Medium",
+                        "location": {"lat": 28.6139, "lon": 77.2090},  # Delhi
+                        "timestamp": datetime.now().isoformat()
+                    },
+                    {
+                        "type": "earthquake_alert",
+                        "title": "Earthquake Detected",
+                        "description": "Magnitude 4.2 earthquake detected 50km away",
+                        "severity": "Low",
+                        "location": {"lat": 19.0760, "lon": 72.8777},  # Mumbai
+                        "timestamp": datetime.now().isoformat()
+                    },
+                    {
+                        "type": "flood_alert",
+                        "title": "Flash Flood Warning",
+                        "description": "Flash flooding possible in low-lying areas",
+                        "severity": "High",
+                        "location": {"lat": 22.5726, "lon": 88.3639},  # Kolkata
+                        "timestamp": datetime.now().isoformat()
+                    }
+                ]
+
+                alert = random.choice(alert_types)
+                await manager.broadcast(json.dumps(alert))
+                logger.info(f"Broadcasted alert: {alert['title']}")
+
+            await asyncio.sleep(30)  # Check every 30 seconds
+
+        except Exception as e:
+            logger.error(f"Alert broadcast task error: {e}")
+            await asyncio.sleep(30)
+
+# Start alert broadcasting task on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize the application"""
+    logger.info("Starting Alert Aid ML Backend...")
+
+    # Create directories
+    Config.MODEL_PATH.mkdir(exist_ok=True)
+    Config.DATA_PATH.mkdir(exist_ok=True)
+
+    # Initialize ML models in background
+    asyncio.create_task(initialize_models())
+
+    # Start real-time alert broadcasting
+    asyncio.create_task(alert_broadcast_task())
 
 # Development and testing endpoints
 @app.post("/test/predict")
