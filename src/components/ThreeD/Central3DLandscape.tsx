@@ -232,16 +232,7 @@ const Central3DLandscape: React.FC<Central3DLandscapeProps> = ({
       {/* Removed ScoreOverlay - risk score shown in main panel above */}
       
       <InstructionOverlay>
-        {/* 
-          TODO: Replace with your 3D model
-          Drop your .glb/.obj file in /public/models/
-          Update the Scene component to load your model:
-          
-          import { useGLTF } from '@react-three/drei';
-          const { scene } = useGLTF('/models/your-model.glb');
-          return <primitive object={scene} />
-        */}
-        Drag to rotate • Scroll to zoom • Placeholder 3D scene
+        Drag to rotate • Scroll to zoom • 3D Landscape Visualization
       </InstructionOverlay>
     </LandscapeContainer>
   );
