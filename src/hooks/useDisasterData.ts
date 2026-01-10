@@ -127,9 +127,7 @@ export const useDisasterData = (location: LocationData | null) => {
       // Clear any previous errors since we got data (even if fallback)
       clearError('riskPrediction');
     } catch (error) {
-      console.error('riskPrediction error:', error);
-      // Don't call handleApiError to avoid showing error notifications
-      // The fallback data will be used instead
+      handleApiError(error, 'riskPrediction');
     } finally {
       setLoading(prev => ({ ...prev, riskPrediction: false }));
     }
