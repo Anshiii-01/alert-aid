@@ -192,19 +192,28 @@ export const useDisasterData = (location: LocationData | null) => {
 
     console.log('🔄 Refreshing all disaster data...');
     setLastUpdated(new Date().toISOString());
-    
-    // Use consistent coordinates for all API calls
+
+    // Resolve coordinates once for all API calls to ensure consistency
     const resolvedCoords = CoordinateResolver.resolveCoordinates(location, null, true);
-    const weatherCoords = CoordinateResolver.getWeatherCoordinates(location, null);
-    const mlLocationData = CoordinateResolver.getMLCoordinates(location, null);
-    const alertsCoords = CoordinateResolver.getAlertsCoordinates(location, null);
-    
+
+    // Derive coordinates for each API from the single resolved coordinate
+    const weatherCoords = { lat: resolvedCoords.latitude, lon: resolvedCoords.longitude };
+    const mlLocationData: LocationData = resolvedCoords.locationData || {
+      latitude: resolvedCoords.latitude,
+      longitude: resolvedCoords.longitude,
+      city: 'Unknown City',
+      state: 'Unknown State',
+      country: 'Unknown Country',
+      timestamp: Date.now()
+    };
+    const alertsCoords = { lat: resolvedCoords.latitude, lon: resolvedCoords.longitude };
+
     console.log('🎯 Using consistent coordinates for data refresh:', {
       summary: CoordinateResolver.getCoordinateSummary(resolvedCoords),
       weather: weatherCoords,
       alerts: alertsCoords
     });
-    
+
     // Use setTimeout to prevent blocking and infinite loops
     setTimeout(() => {
       Promise.all([
@@ -239,8 +248,8 @@ export const useDisasterData = (location: LocationData | null) => {
       
       if (alertData.type === 'new_alert' && location) {
         // Use consistent coordinates for alert refresh
-        const alertsCoords = CoordinateResolver.getAlertsCoordinates(location, null);
-        fetchAlerts(alertsCoords.lat, alertsCoords.lon);
+        const resolvedCoords = CoordinateResolver.resolveCoordinates(location, null, true);
+        fetchAlerts(resolvedCoords.latitude, resolvedCoords.longitude);
       }
     };
 
@@ -276,18 +285,26 @@ export const useDisasterData = (location: LocationData | null) => {
     // Individual refresh functions (using consistent coordinates)
     refreshRiskPrediction: () => {
       if (!location) return;
-      const mlLocationData = CoordinateResolver.getMLCoordinates(location, null);
+      const resolvedCoords = CoordinateResolver.resolveCoordinates(location, null, true);
+      const mlLocationData: LocationData = resolvedCoords.locationData || {
+        latitude: resolvedCoords.latitude,
+        longitude: resolvedCoords.longitude,
+        city: 'Unknown City',
+        state: 'Unknown State',
+        country: 'Unknown Country',
+        timestamp: Date.now()
+      };
       fetchRiskPrediction(mlLocationData);
     },
     refreshWeather: () => {
       if (!location) return;
-      const weatherCoords = CoordinateResolver.getWeatherCoordinates(location, null);
-      fetchWeather(weatherCoords.lat, weatherCoords.lon);
+      const resolvedCoords = CoordinateResolver.resolveCoordinates(location, null, true);
+      fetchWeather(resolvedCoords.latitude, resolvedCoords.longitude);
     },
     refreshAlerts: () => {
       if (!location) return;
-      const alertsCoords = CoordinateResolver.getAlertsCoordinates(location, null);
-      fetchAlerts(alertsCoords.lat, alertsCoords.lon);
+      const resolvedCoords = CoordinateResolver.resolveCoordinates(location, null, true);
+      fetchAlerts(resolvedCoords.latitude, resolvedCoords.longitude);
     },
     // No forecast or model performance refresh (endpoints removed)
   };
