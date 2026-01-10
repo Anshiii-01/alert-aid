@@ -1,7 +1,7 @@
 {
   "short_name": "Alert Aid",
-  "name": "Alert Aid - Disaster Monitoring & Prediction",
-  "description": "Real-time disaster monitoring and early warning system with AI-powered predictions",
+  "name": "Alert-AID - AI-Powered Disaster Alert System",
+  "description": "A real-time disaster monitoring and emergency response application featuring ML-powered predictions, interactive evacuation maps, and live weather alerts.",
   "icons": [
     {
       "src": "Gemini_Generated_Image_7c3uv87c3uv87c3u.svg",
