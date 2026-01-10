@@ -1,10 +1,13 @@
 /**
  * EmergencySOS - One-Click Emergency Alert System
- * Enhanced with loading indicator for emergency actions (Issue #71)
+ * Critical feature for disaster response applications
+ *
+ * - Issue #71: Loading indicator for emergency actions
+ * - Issue #210: Consistent user-facing error handling
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { productionColors } from '../../styles/production-ui-system';
 import alertNotificationService from '../../services/alertNotificationService';
 
@@ -56,7 +59,7 @@ const spin = keyframes`
 const Container = styled.div`
   background: linear-gradient(
     135deg,
-    rgba(239,68,68,.1),
+    rgba(239, 68, 68, 0.1),
     ${productionColors.background.secondary}
   );
   border: 2px solid rgba(239,68,68,.3);
@@ -116,7 +119,7 @@ const InstructionText = styled.p`
   color: ${productionColors.text.secondary};
 `;
 
-const ErrorText = styled.p`
+const ErrorPanel = styled.p`
   text-align: center;
   color: #ef4444;
   font-size: 13px;
@@ -142,23 +145,27 @@ const EmergencySOS: React.FC<EmergencySOSProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [location, setLocation] = useState<LocationData | null>(null);
 
   const defaultContacts = useMemo(
     () =>
-      emergencyContacts.length
+      emergencyContacts.length > 0
         ? emergencyContacts
         : [
             { id: '1', name: 'Emergency Services', phone: '911', type: 'emergency' },
             { id: '2', name: 'Family Contact', phone: '+1 555-0123', type: 'family' },
+            { id: '3', name: 'Medical Emergency', phone: '108', type: 'medical' },
           ],
     [emergencyContacts]
   );
 
   /* ---------- Location ---------- */
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setErrorMessage('Geolocation is not supported by your browser.');
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       pos =>
@@ -168,7 +175,10 @@ const EmergencySOS: React.FC<EmergencySOSProps> = ({
           accuracy: pos.coords.accuracy,
           timestamp: pos.timestamp,
         }),
-      err => console.error(err)
+      () =>
+        setErrorMessage(
+          'Unable to access location. Please enable location permissions.'
+        )
     );
   }, []);
 
@@ -177,7 +187,7 @@ const EmergencySOS: React.FC<EmergencySOSProps> = ({
     if (loading) return;
 
     setLoading(true);
-    setError(null);
+    setErrorMessage(null);
     setSuccess(false);
 
     try {
@@ -196,15 +206,16 @@ const EmergencySOS: React.FC<EmergencySOSProps> = ({
         status: 'sent',
         message: `Emergency SOS from ${userName}`,
       });
-    } catch (e) {
-      console.error(e);
-      setError('Failed to send emergency alert. Please try again.');
+    } catch {
+      setErrorMessage(
+        'Failed to send emergency alert. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   }, [loading, userName, location, defaultContacts, onSOSActivated]);
 
-  /* ===================== UI ===================== */
+  /* ===================== RENDER ===================== */
 
   return (
     <Container>
@@ -222,10 +233,10 @@ const EmergencySOS: React.FC<EmergencySOSProps> = ({
       <InstructionText>
         {loading && 'Processing emergency alert…'}
         {!loading && success && 'Emergency alert sent successfully!'}
-        {!loading && !success && !error && 'Tap SOS to send an emergency alert'}
+        {!loading && !success && !errorMessage && 'Tap SOS to send an emergency alert'}
       </InstructionText>
 
-      {error && <ErrorText>{error}</ErrorText>}
+      {errorMessage && <ErrorPanel>{errorMessage}</ErrorPanel>}
     </Container>
   );
 };
