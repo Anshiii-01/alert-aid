@@ -230,7 +230,8 @@ interface EnhancedLocationPermissionModalProps {
 export const EnhancedLocationPermissionModal: React.FC<EnhancedLocationPermissionModalProps> = ({
   isOpen,
   onLocationGranted,
-  onClose
+  onClose,
+  onSkip
 }) => {
   const [permissionState, setPermissionState] = useState<LocationPermissionState>('requesting');
   const [isLoading, setIsLoading] = useState(false);
@@ -436,15 +437,15 @@ export const EnhancedLocationPermissionModal: React.FC<EnhancedLocationPermissio
           <IconContainer>
             <MapPin />
           </IconContainer>
-          <ModalTitle>Location Access Required</ModalTitle>
+          <ModalTitle>Enable Location for Better Alerts</ModalTitle>
           <ModalDescription>
-            Alert Aid needs your location to provide accurate, hyperlocal disaster risk predictions and emergency alerts for your area.
+            Alert Aid works best with your location to provide accurate, hyperlocal disaster risk predictions and emergency alerts for your area. You can skip this for now and use a default location, or enable location access anytime from settings.
           </ModalDescription>
         </ModalHeader>
 
         {permissionState === 'requesting' && (
           <ButtonGroup>
-            <PrimaryButton 
+            <PrimaryButton
               onClick={requestLocationPermission}
               disabled={isLoading}
             >
@@ -460,11 +461,17 @@ export const EnhancedLocationPermissionModal: React.FC<EnhancedLocationPermissio
                 </>
               )}
             </PrimaryButton>
-            
+
             <SecondaryButton onClick={() => setPermissionState('manual_entry')}>
               <Search size={16} />
               Enter City Manually
             </SecondaryButton>
+
+            {onSkip && (
+              <SecondaryButton onClick={onSkip}>
+                Skip for Now
+              </SecondaryButton>
+            )}
           </ButtonGroup>
         )}
 

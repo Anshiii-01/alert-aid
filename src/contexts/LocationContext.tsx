@@ -12,6 +12,7 @@ interface LocationContextType {
   showLocationModal: boolean;
   requestLocationChange: () => void;
   setLocation: (location: LocationData) => void;
+  skipLocationPermission: () => void;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -29,8 +30,19 @@ interface LocationProviderProps {
 }
 
 export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) => {
-  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
-  const [isLocationLoaded, setIsLocationLoaded] = useState(false);
+  // Set default location immediately to allow app to load
+  const defaultLocation: LocationData = {
+    latitude: 28.6139,
+    longitude: 77.2090,
+    city: 'New Delhi',
+    state: 'Delhi',
+    country: 'India',
+    isManual: true,
+    timestamp: Date.now()
+  };
+
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(defaultLocation);
+  const [isLocationLoaded, setIsLocationLoaded] = useState(true); // Start as loaded with default
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationRequested, setLocationRequested] = useState(false);
 
@@ -356,12 +368,19 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({ children }) 
     setShowLocationModal(true);
   };
 
+  const skipLocationPermission = () => {
+    console.log('📍 User skipped location permission, using default location');
+    setShowLocationModal(false);
+    // The default location is already set, so we just close the modal
+  };
+
   const contextValue: LocationContextType = {
     currentLocation,
     isLocationLoaded,
     showLocationModal,
     requestLocationChange,
     setLocation,
+    skipLocationPermission,
   };
 
   return (

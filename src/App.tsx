@@ -73,7 +73,7 @@ const cleanupInvalidCaches = () => {
 
 // Main App Content Component with theme bridge
 const AppContent: React.FC = () => {
-  const { showLocationModal, setLocation } = useLocation();
+  const { showLocationModal, setLocation, skipLocationPermission } = useLocation();
   const { theme: themeMode } = useThemeContext();
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
