@@ -28,6 +28,7 @@ import './utils/locationOverride';
 import Footer from "./components/Footer";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
+import ScrollToTop from "./components/ScrollToTop";
 // Skip to content link for accessibility
 const SkipToContent = styled.a`
   position: absolute;
@@ -149,6 +150,7 @@ function App() {
                 <Starfield />
                 <AppContent />
               </Router>
+              <ScrollToTop />
             </GeolocationProvider>
           </LocationProvider>
         </NotificationProvider>
