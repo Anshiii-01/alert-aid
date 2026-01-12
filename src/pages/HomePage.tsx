@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { 
-  TrendingUp, Shield, Activity, MapPin, 
-  Thermometer, Wind, Droplets, ChevronRight, 
-  Navigation, Bell, Map, BarChart3, 
+import {
+  TrendingUp, Shield, Activity, MapPin,
+  Thermometer, Wind, Droplets, ChevronRight,
+  Navigation, Bell, Map, BarChart3,
   Zap, Clock, Globe, Users
 } from 'lucide-react';
 import { productionColors, productionCard } from '../styles/production-ui-system';
@@ -128,17 +128,17 @@ const RiskIndicator = styled.div<{ level: 'low' | 'moderate' | 'high' | 'critica
   flex-direction: column;
   align-items: center;
   padding: 16px;
-  background: ${({ level }) => 
+  background: ${({ level }) =>
     level === 'critical' ? 'rgba(239, 68, 68, 0.15)' :
-    level === 'high' ? 'rgba(245, 158, 11, 0.15)' :
-    level === 'moderate' ? 'rgba(59, 130, 246, 0.15)' :
-    'rgba(34, 197, 94, 0.15)'
+      level === 'high' ? 'rgba(245, 158, 11, 0.15)' :
+        level === 'moderate' ? 'rgba(59, 130, 246, 0.15)' :
+          'rgba(34, 197, 94, 0.15)'
   };
-  border: 1px solid ${({ level }) => 
+  border: 1px solid ${({ level }) =>
     level === 'critical' ? 'rgba(239, 68, 68, 0.4)' :
-    level === 'high' ? 'rgba(245, 158, 11, 0.4)' :
-    level === 'moderate' ? 'rgba(59, 130, 246, 0.4)' :
-    'rgba(34, 197, 94, 0.4)'
+      level === 'high' ? 'rgba(245, 158, 11, 0.4)' :
+        level === 'moderate' ? 'rgba(59, 130, 246, 0.4)' :
+          'rgba(34, 197, 94, 0.4)'
   };
   border-radius: 12px;
   margin-bottom: 16px;
@@ -147,11 +147,11 @@ const RiskIndicator = styled.div<{ level: 'low' | 'moderate' | 'high' | 'critica
 const RiskScore = styled.div<{ level: string }>`
   font-size: 48px;
   font-weight: 800;
-  color: ${({ level }) => 
+  color: ${({ level }) =>
     level === 'critical' ? '#ef4444' :
-    level === 'high' ? '#f59e0b' :
-    level === 'moderate' ? '#3b82f6' :
-    '#22c55e'
+      level === 'high' ? '#f59e0b' :
+        level === 'moderate' ? '#3b82f6' :
+          '#22c55e'
   };
   line-height: 1;
 `;
@@ -487,30 +487,31 @@ const HomePage: React.FC = () => {
   const [riskLevel, setRiskLevel] = useState<'low' | 'moderate' | 'high' | 'critical'>('low');
   const [riskScore, setRiskScore] = useState<number>(2.4);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Fetch live data from real APIs
   const fetchLiveData = useCallback(async () => {
     try {
       const loc = await enhancedLocationService.getCurrentLocation();
       setLocation(`${loc.city || 'Unknown'}, ${loc.country || ''}`);
-      
+
       const weatherData = await SimpleWeatherService.getWeather(loc.latitude, loc.longitude);
       setWeather(weatherData);
-      
+
       // Calculate risk based on REAL weather data only - no random factors
       const tempRisk = weatherData.current.temp > 40 ? 3 : weatherData.current.temp > 35 ? 2 : weatherData.current.temp < 0 ? 2 : weatherData.current.temp < 5 ? 1 : 0;
       const windRisk = weatherData.current.wind_speed > 20 ? 3 : weatherData.current.wind_speed > 15 ? 2 : weatherData.current.wind_speed > 10 ? 1 : 0;
       const humidityRisk = weatherData.current.humidity > 90 ? 1.5 : weatherData.current.humidity > 85 ? 1 : 0;
       const visibilityRisk = weatherData.current.visibility < 1000 ? 1.5 : weatherData.current.visibility < 5000 ? 0.5 : 0;
-      
+
       // Base risk of 1.5 (minimal) + weather factors - deterministic calculation
       const calculatedRisk = Math.min(1.5 + tempRisk + windRisk + humidityRisk + visibilityRisk, 10);
-      
+
       setRiskScore(Number(calculatedRisk.toFixed(1)));
       setRiskLevel(
         calculatedRisk >= 7.5 ? 'critical' :
-        calculatedRisk >= 5.5 ? 'high' :
-        calculatedRisk >= 3.5 ? 'moderate' : 'low'
+          calculatedRisk >= 5.5 ? 'high' :
+            calculatedRisk >= 3.5 ? 'moderate' : 'low'
       );
       setLastUpdated(new Date());
     } catch (error) {
@@ -582,7 +583,7 @@ const HomePage: React.FC = () => {
         <HeroContent>
           <Title>Alert Aid</Title>
           <Subtitle>
-            AI-powered disaster prediction and emergency response system. 
+            AI-powered disaster prediction and emergency response system.
             Real-time monitoring, intelligent forecasting, and life-saving alerts.
           </Subtitle>
           <ButtonGroup>
@@ -602,12 +603,12 @@ const HomePage: React.FC = () => {
             <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>Current Status</span>
             <LiveBadge>LIVE</LiveBadge>
           </StatusHeader>
-          
+
           <RiskIndicator level={riskLevel}>
             <RiskScore level={riskLevel}>{riskScore.toFixed(1)}</RiskScore>
             <RiskLabel>Risk Level: {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}</RiskLabel>
           </RiskIndicator>
-          
+
           <WeatherRow>
             <WeatherStat>
               <Thermometer size={16} />
@@ -625,12 +626,12 @@ const HomePage: React.FC = () => {
               <StatLabel>Humidity</StatLabel>
             </WeatherStat>
           </WeatherRow>
-          
+
           <LocationText>
             <MapPin />
             {location}
           </LocationText>
-          
+
           {lastUpdated && (
             <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '8px', textAlign: 'center' }}>
               Updated: {lastUpdated.toLocaleTimeString()}
@@ -646,8 +647,8 @@ const HomePage: React.FC = () => {
         </SectionTitle>
         <QuickNavGrid>
           {quickNavItems.map((item, index) => (
-            <QuickNavCard 
-              key={index} 
+            <QuickNavCard
+              key={index}
               color={item.color}
               onClick={() => navigate(item.path)}
             >
