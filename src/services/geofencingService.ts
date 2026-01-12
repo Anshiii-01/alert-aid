@@ -385,14 +385,14 @@ class GeofencingService {
         lastUpdated: new Date(),
       },
     };
-    
+
     this.geofences.set(id, newGeofence);
-    
+
     // Check if user is already inside
     if (this.lastLocation && newGeofence.active) {
       this.checkGeofence(newGeofence, this.lastLocation);
     }
-    
+
     this.notifyStatusChange();
     return newGeofence;
   }
@@ -526,11 +526,11 @@ class GeofencingService {
     if (isInside && !wasInside) {
       // Entered geofence
       this.activeGeofences.add(geofence.id);
-      
+
       if (geofence.triggerOnEnter) {
         this.triggerEvent(geofence, 'enter', location);
       }
-      
+
       if (geofence.triggerOnDwell && geofence.dwellTime) {
         this.startDwellTimer(geofence, location);
       }
@@ -538,7 +538,7 @@ class GeofencingService {
       // Exited geofence
       this.activeGeofences.delete(geofence.id);
       this.clearDwellTimer(geofence.id);
-      
+
       if (geofence.triggerOnExit) {
         this.triggerEvent(geofence, 'exit', location);
       }
@@ -589,8 +589,8 @@ class GeofencingService {
       const yj = polygon[j].latitude;
 
       const intersect =
-        yi > point.latitude !== yj > point.latitude &&
-        point.longitude < ((xj - xi) * (point.latitude - yi)) / (yj - yi) + xi;
+        yi > y !== yj > y &&
+        x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
 
       if (intersect) inside = !inside;
     }
