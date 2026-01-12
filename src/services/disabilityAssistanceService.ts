@@ -131,7 +131,7 @@ interface EmergencyContact {
   email?: string;
   canMakeDecisions: boolean;
   hasKey: boolean;
-  knows SignLanguage?: boolean;
+  knowsSignLanguage?: boolean;
   notes?: string;
 }
 
@@ -658,12 +658,12 @@ class DisabilityAssistanceService {
     // Find communication support
     const commSupport = Array.from(this.communicationSupports.values())
       .filter(c => {
-        if (profile.disabilities.some(d => d.type === 'hearing') && 
-            (c.type === 'sign_language_interpreter' || c.type === 'video_relay' || c.type === 'captioning')) {
+        if (profile.disabilities.some(d => d.type === 'hearing') &&
+          (c.type === 'sign_language_interpreter' || c.type === 'video_relay' || c.type === 'captioning')) {
           return true;
         }
         if (profile.disabilities.some(d => d.type === 'visual') &&
-            (c.type === 'braille' || c.type === 'large_print' || c.type === 'audio_description')) {
+          (c.type === 'braille' || c.type === 'large_print' || c.type === 'audio_description')) {
           return true;
         }
         return false;
@@ -704,7 +704,7 @@ class DisabilityAssistanceService {
     }
 
     if (requirements.sensoryFriendly) {
-      shelters = shelters.filter(s => 
+      shelters = shelters.filter(s =>
         s.accessibility.sensoryFriendlySpaces && s.accessibility.quietAreas
       );
     }
@@ -731,7 +731,7 @@ class DisabilityAssistanceService {
     }
 
     // Sort by available accessible capacity
-    return shelters.sort((a, b) => 
+    return shelters.sort((a, b) =>
       (b.accessibleCapacity - b.accessibleOccupancy) - (a.accessibleCapacity - a.accessibleOccupancy)
     );
   }
@@ -847,7 +847,7 @@ class DisabilityAssistanceService {
     }
 
     if (language) {
-      supports = supports.filter(s => 
+      supports = supports.filter(s =>
         !s.languages || s.languages.includes(language)
       );
     }
@@ -894,7 +894,7 @@ class DisabilityAssistanceService {
       byEvacuationType,
       powerDependentCount: profiles.filter(p => p.medicalInfo.powerDependentEquipment).length,
       pendingRequests: requests.filter(r => r.status === 'pending').length,
-      availableShelterCapacity: shelters.reduce((sum, s) => 
+      availableShelterCapacity: shelters.reduce((sum, s) =>
         sum + (s.accessibleCapacity - s.accessibleOccupancy), 0),
       availableTransport: transport.filter(t => t.status === 'available').length
     };
