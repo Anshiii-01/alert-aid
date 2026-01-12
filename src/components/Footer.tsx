@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { Mail, Github, Twitter, Globe, Shield, MapPin, AlertTriangle } from 'lucide-react';
+import { Github, Twitter, Globe, Shield, MapPin, AlertTriangle } from 'lucide-react';
 import { productionColors, productionAnimations } from '../styles/production-ui-system';
 
 const FooterWrapper = styled.footer`
@@ -244,7 +244,7 @@ const Footer: React.FC = () => (
           <a href="https://github.com/Anshiii-01/alert-aid" target="_blank" rel="noopener noreferrer">
             <Github size={16} />
           </a>
-          <a href="#" target="_blank" rel="noopener noreferrer">
+          <a href="https://alertaid.org" target="_blank" rel="noopener noreferrer">
             <Globe size={16} />
           </a>
         </SocialLinks>
@@ -292,13 +292,13 @@ const Footer: React.FC = () => (
       <CopyrightNotice>
         <span>© {new Date().getFullYear()} Alert Aid. All rights reserved.</span>
       </CopyrightNotice>
-      
+
       <FooterLinks>
-        <a href="#">Accessibility</a>
-        <a href="#">Security</a>
-        <a href="#">Status</a>
+        <Link to="/accessibility">Accessibility</Link>
+        <Link to="/security">Security</Link>
+        <Link to="/status">Status</Link>
       </FooterLinks>
-      
+
       <BrandTagline>
         <span><Shield size={14} /> Disaster preparedness</span>
         <span><AlertTriangle size={14} /> Public safety</span>
