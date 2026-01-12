@@ -559,7 +559,7 @@ const Dashboard: React.FC = () => {
     if ((aqiData || alerts) && dashboardLoaded) {
       calculateGlobalRisk();
     }
-  }, [aqiData, alerts, dashboardLoaded, calculateGlobalRisk]);
+  }, [aqiData, alerts, dashboardLoaded]);
 
   // Memoize time formatting to prevent excessive re-renders
   const formatTimeUntilNextRefresh = useCallback((nextRefresh: Date | null) => {
