@@ -1,14 +1,15 @@
 import React from 'react';
 import styled, { keyframes, css } from 'styled-components';
-import { 
-  SkeletonDashboardCard, 
-  SkeletonAlertCard, 
-  SkeletonMap, 
+import {
+  SkeletonDashboardCard,
+  SkeletonAlertCard,
+  SkeletonMap,
   SkeletonList,
   SkeletonChart as OriginalSkeletonChart,
   SkeletonText as OriginalSkeletonText,
   SkeletonCard as OriginalSkeletonCard
 } from '../../styles/SkeletonLoader';
+import { productionColors } from '../../styles/production-ui-system';
 
 // Enhanced Skeleton Loading Animations
 const shimmer = keyframes`
@@ -42,13 +43,13 @@ const wave = keyframes`
 const SkeletonBase = styled.div<{ width?: string; height?: string; borderRadius?: string }>`
   background: linear-gradient(
     90deg,
-    ${({ theme }) => theme.colors.surface.default} 0%,
-    ${({ theme }) => theme.colors.surface.hover} 50%,
-    ${({ theme }) => theme.colors.surface.default} 100%
+    ${productionColors.background.secondary} 0%,
+    ${productionColors.background.tertiary} 50%,
+    ${productionColors.background.secondary} 100%
   );
   background-size: 200px 100%;
   ${css`animation: ${shimmer} 1.5s ease-in-out infinite;`}
-  border-radius: ${({ borderRadius, theme }) => borderRadius || theme.borderRadius.md};
+  border-radius: ${({ borderRadius }) => borderRadius || '12px'};
   width: ${({ width }) => width || '100%'};
   height: ${({ height }) => height || '1rem'};
 `;
@@ -97,7 +98,7 @@ const PulseDot = styled.div<{ delay?: number }>`
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primary[500]};
+  background: ${productionColors.brand.primary};
   ${css`animation: ${pulse} 1.5s ease-in-out infinite;`}
   animation-delay: ${({ delay }) => delay || 0}s;
 `;
@@ -121,8 +122,8 @@ const WaveContainer = styled.div`
 const WaveBar = styled.div<{ delay?: number }>`
   width: 0.25rem;
   height: 2rem;
-  background: ${({ theme }) => theme.colors.primary[500]};
-  border-radius: ${({ theme }) => theme.borderRadius.sm};
+  background: ${productionColors.brand.primary};
+  border-radius: 6px;
   ${css`animation: ${wave} 1.2s ease-in-out infinite;`}
   animation-delay: ${({ delay }) => delay || 0}s;
 `;
@@ -155,8 +156,8 @@ const SpinnerContainer = styled.div<{ size?: 'sm' | 'md' | 'lg' }>`
       default: return css`width: 2rem; height: 2rem;`;
     }
   }}
-  border: 2px solid ${({ theme }) => theme.colors.surface.border};
-  border-left: 2px solid ${({ theme }) => theme.colors.primary[500]};
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid ${productionColors.brand.primary};
   border-radius: 50%;
   ${css`animation: ${spin} 1s linear infinite;`}
 `;
@@ -172,11 +173,11 @@ const OverlayContainer = styled.div<{ fullScreen?: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  background: ${({ theme }) => theme.colors.overlay.backdrop};
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: ${({ theme }) => theme.zIndex.modal};
+  z-index: 1000;
   backdrop-filter: blur(4px);
 `;
 
@@ -186,15 +187,15 @@ const LoadingContent = styled.div`
   align-items: center;
   gap: 1rem;
   padding: 2rem;
-  background: ${({ theme }) => theme.colors.surface.elevated};
-  border-radius: ${({ theme }) => theme.borderRadius.xl};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
-  box-shadow: ${({ theme }) => theme.shadows.xl};
+  background: ${productionColors.background.secondary};
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 `;
 
 const LoadingText = styled.p`
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  color: ${productionColors.text.primary};
+  font-weight: 600;
   margin: 0;
 `;
 
@@ -203,9 +204,9 @@ interface LoadingOverlayProps {
   fullScreen?: boolean;
 }
 
-export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ 
-  message = 'Loading...', 
-  fullScreen = false 
+export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
+  message = 'Loading...',
+  fullScreen = false
 }) => (
   <OverlayContainer fullScreen={fullScreen}>
     <LoadingContent>
@@ -240,14 +241,14 @@ export const SkeletonDashboard: React.FC = () => (
       <SkeletonText $width="40%" $height="36px" />
       <SkeletonText $width="60%" $height="16px" />
     </div>
-    
+
     {/* Cards skeleton */}
     <CardsGrid>
       <SkeletonDashboardCard />
       <SkeletonDashboardCard />
       <SkeletonDashboardCard />
     </CardsGrid>
-    
+
     {/* Main content grid */}
     <DashboardGrid>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
