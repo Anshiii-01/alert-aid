@@ -132,8 +132,8 @@ const HazardsGrid = styled.div`
 `;
 
 const HazardCard = styled.div<{ $riskLevel: string; $selected?: boolean }>`
-  background: ${props => props.$selected 
-    ? riskColors[props.$riskLevel as keyof typeof riskColors]?.bg 
+  background: ${props => props.$selected
+    ? riskColors[props.$riskLevel as keyof typeof riskColors]?.bg
     : 'rgba(255, 255, 255, 0.02)'};
   border: 2px solid ${props => props.$selected
     ? riskColors[props.$riskLevel as keyof typeof riskColors]?.border
@@ -504,7 +504,7 @@ const MultiHazardPanel: React.FC<MultiHazardPanelProps> = ({
   // Generate historical trend data based on current hazard values
   const generateTrendData = useCallback((currentHazards: HazardPrediction[], range: string) => {
     const dataPoints = range === '24h' ? 24 : range === '7d' ? 7 : 30;
-    const labels = range === '24h' 
+    const labels = range === '24h'
       ? Array.from({ length: dataPoints }, (_, i) => `${23 - i}h ago`).reverse()
       : range === '7d'
         ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today']
@@ -512,30 +512,30 @@ const MultiHazardPanel: React.FC<MultiHazardPanelProps> = ({
 
     return labels.map((label, index) => {
       const dataPoint: any = { name: label };
-      
+
       currentHazards.forEach(hazard => {
         // Create realistic trend based on current probability and trend direction
         const baseProbability = hazard.probability * 100;
         const trendMultiplier = hazard.trend === 'increasing' ? 0.8 : hazard.trend === 'decreasing' ? 1.2 : 1;
         const randomVariation = (Math.random() - 0.5) * 10;
-        const historicalValue = Math.max(5, Math.min(95, 
+        const historicalValue = Math.max(5, Math.min(95,
           baseProbability * trendMultiplier + randomVariation + (index - dataPoints / 2) * (hazard.trend === 'increasing' ? 1.5 : hazard.trend === 'decreasing' ? -1.5 : 0)
         ));
-        
+
         dataPoint[hazard.type] = Math.round(historicalValue);
       });
-      
+
       return dataPoint;
     });
   }, []);
 
   const generateHazardPredictions = useCallback(async () => {
     setLoading(true);
-    
+
     try {
       // Use REAL location-based hazard calculations
       console.log('🔍 Fetching real hazard data for:', cityName || `${latitude}, ${longitude}`);
-      
+
       const realPredictions = await LocationHazardService.getHazardPredictions(
         cityName || 'unknown',
         latitude,
@@ -561,14 +561,14 @@ const MultiHazardPanel: React.FC<MultiHazardPanelProps> = ({
       setDataSource('Real-time geographic & weather analysis');
       setLastUpdated(new Date());
       setTrendData(generateTrendData(predictions, timeRange));
-      
+
       // Calculate overall risk
       const maxRisk = predictions.reduce((max, h) => {
         const levels = ['low', 'moderate', 'high', 'critical'];
         return levels.indexOf(h.riskLevel) > levels.indexOf(max) ? h.riskLevel : max;
       }, 'low');
       setOverallRisk(maxRisk);
-      
+
       console.log('✅ Real hazard data loaded:', predictions);
     } catch (error) {
       console.error('❌ Error fetching hazard data:', error);
@@ -588,9 +588,9 @@ const MultiHazardPanel: React.FC<MultiHazardPanelProps> = ({
         }
       ]);
     }
-    
+
     setLoading(false);
-  }, [latitude, longitude, cityName]);
+  }, [latitude, longitude, cityName, generateTrendData, timeRange]);
 
   useEffect(() => {
     generateHazardPredictions();
@@ -761,47 +761,47 @@ const MultiHazardPanel: React.FC<MultiHazardPanelProps> = ({
             <TimeButton $active={timeRange === '30d'} onClick={() => setTimeRange('30d')}>30D</TimeButton>
           </ChartControls>
         </ChartHeader>
-        
+
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="floodGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="earthquakeGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="stormGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#A855F7" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="fireGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F97316" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#F97316" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#F97316" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="landslideGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#EAB308" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#EAB308" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#EAB308" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#EAB308" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fill: '#94A3B8', fontSize: 10 }} 
+              <XAxis
+                dataKey="name"
+                tick={{ fill: '#94A3B8', fontSize: 10 }}
                 axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
               />
-              <YAxis 
-                tick={{ fill: '#94A3B8', fontSize: 10 }} 
+              <YAxis
+                tick={{ fill: '#94A3B8', fontSize: 10 }}
                 axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
                 domain={[0, 100]}
                 tickFormatter={(value) => `${value}%`}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)',
                   border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '8px',
                   color: '#fff'
