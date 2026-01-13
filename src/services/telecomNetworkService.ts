@@ -570,7 +570,8 @@ class TelecomNetworkService {
         towerIds: [towerId],
         title: `Tower ${tower.name} status changed to ${status}`,
         description: reason || `Tower status changed from ${previousStatus} to ${status}`,
-        affectedServices: tower.services.filter(s => s.available).map(s => s.service)
+        affectedServices: tower.services.filter(s => s.available).map(s => s.service),
+        actions: []
       });
     }
 
@@ -614,7 +615,8 @@ class TelecomNetworkService {
         towerIds: [towerId],
         title: `High congestion on ${tower.name}`,
         description: `Tower utilization at ${tower.capacity.utilizationPercent}%`,
-        affectedServices: ['voice', 'data']
+        affectedServices: ['voice', 'data'],
+        actions: []
       });
     }
 
@@ -636,7 +638,8 @@ class TelecomNetworkService {
         towerIds: [towerId],
         title: `Tower ${tower.name} on backup power`,
         description: `Tower running on ${power.currentPowerSource}`,
-        affectedServices: []
+        affectedServices: [],
+        actions: []
       });
     }
 
@@ -662,7 +665,8 @@ class TelecomNetworkService {
         towerIds: [towerId],
         title: `Backhaul failure on ${tower.name}`,
         description: 'Primary backhaul disconnected',
-        affectedServices: ['data']
+        affectedServices: ['data'],
+        actions: []
       });
     }
 

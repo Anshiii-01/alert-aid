@@ -9,7 +9,7 @@
 // Type definitions
 type ContaminantType = 'bacterial' | 'viral' | 'chemical' | 'heavy_metal' | 'organic' | 'radioactive' | 'particulate' | 'biological';
 type WaterSource = 'municipal' | 'well' | 'surface' | 'reservoir' | 'spring' | 'rainwater' | 'desalinated' | 'recycled';
-type AlertSeverity = 'advisory' | 'watch' | 'warning' | 'emergency' | 'do_not_use';
+type AlertSeverity = 'advisory' | 'watch' | 'warning' | 'emergency' | 'do_not_use' | 'do_not_drink';
 type SampleStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'invalid';
 type TreatmentMethod = 'chlorination' | 'uv' | 'ozonation' | 'filtration' | 'reverse_osmosis' | 'boiling' | 'activated_carbon' | 'ion_exchange';
 
@@ -379,7 +379,7 @@ class WaterContaminationService {
       const standard = this.mclStandards[p.parameter.toLowerCase().replace(/\s+/g, '_')];
       const mcl = standard?.mcl || 1;
       const percentOfLimit = (p.value / mcl) * 100;
-      
+
       return {
         parameter: p.parameter,
         value: p.value,
@@ -395,7 +395,7 @@ class WaterContaminationService {
 
     // Detect contaminants
     const contaminants = this.detectContaminants(processedParams);
-    
+
     // Check for violations
     const violations = this.checkViolations(processedParams);
 
@@ -543,12 +543,12 @@ class WaterContaminationService {
 
   private getRequiredActions(parameter: string, risk: WaterParameter['healthRisk']): string[] {
     const actions: string[] = ['Notify regulatory agency'];
-    
+
     if (risk === 'immediate' || risk === 'high') {
       actions.push('Issue public notification');
       actions.push('Implement corrective action');
     }
-    
+
     if (parameter.toLowerCase().includes('coliform') || parameter.toLowerCase().includes('coli')) {
       actions.push('Collect confirmation samples');
       actions.push('Increase disinfectant residual');
@@ -715,7 +715,7 @@ class WaterContaminationService {
   private generateAlertTitle(type: WaterAlert['type'], severity: AlertSeverity, contaminant?: string): string {
     const severityText = severity.toUpperCase().replace('_', ' ');
     const contaminantText = contaminant ? ` - ${contaminant}` : '';
-    
+
     switch (type) {
       case 'boil_water': return `BOIL WATER NOTICE${contaminantText}`;
       case 'do_not_drink': return `DO NOT DRINK WATER${contaminantText}`;
@@ -932,8 +932,8 @@ class WaterContaminationService {
         cost: this.getTreatmentCost(method)
       })),
       householdGuidance: this.getHouseholdGuidance(contaminant, concentration),
-      doNotUseConditions: concentration > targetLevel * 10 
-        ? ['Contamination too high for household treatment'] 
+      doNotUseConditions: concentration > targetLevel * 10
+        ? ['Contamination too high for household treatment']
         : undefined,
       generatedAt: new Date()
     };
@@ -1059,7 +1059,7 @@ class WaterContaminationService {
       qualityDistribution[r.overallQuality]++;
       if (r.isCompliant) compliantCount++;
       totalScore += r.qualityScore;
-      
+
       r.violations.forEach(v => {
         violationCounts[v.parameter] = (violationCounts[v.parameter] || 0) + 1;
       });

@@ -536,11 +536,11 @@ class SocialMediaIntelService {
 
   private extractEntities(content: string): ExtractedEntity[] {
     const entities: ExtractedEntity[] = [];
-    
+
     // Simple pattern matching - production would use NER
     const locationPattern = /(?:at|in|near|on)\s+([A-Z][a-zA-Z\s]+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Highway|Hwy)?)/g;
     let match;
-    
+
     while ((match = locationPattern.exec(content)) !== null) {
       entities.push({
         type: 'location',
@@ -572,7 +572,7 @@ class SocialMediaIntelService {
     platforms?: Platform[];
     authors?: string[];
     location?: { lat: number; lon: number; radius: number };
-    dateRange?: { start: Date; end: Date };
+    dateRange?: { start: Date; end?: Date };
     sentiment?: SentimentType[];
     credibility?: CredibilityLevel[];
     incidentId?: string;
@@ -654,9 +654,9 @@ class SocialMediaIntelService {
     posts.forEach(p => {
       platformCount[p.platform] = (platformCount[p.platform] || 0) + 1;
       sentimentCount[p.analysis.sentiment]++;
-      
+
       p.hashtags.forEach(h => hashtagCount.set(h, (hashtagCount.get(h) || 0) + 1));
-      
+
       const stats = authorStats.get(p.authorUsername) || { postCount: 0, totalEngagement: 0 };
       stats.postCount++;
       stats.totalEngagement += p.engagement.likes + p.engagement.shares + p.engagement.comments;
@@ -694,7 +694,7 @@ class SocialMediaIntelService {
   async bookmarkPost(postId: string): Promise<SocialPost> {
     const post = this.posts.get(postId);
     if (!post) throw new Error(`Post not found: ${postId}`);
-    
+
     post.isBookmarked = true;
     return post;
   }
@@ -702,7 +702,7 @@ class SocialMediaIntelService {
   async addPostNote(postId: string, note: string): Promise<SocialPost> {
     const post = this.posts.get(postId);
     if (!post) throw new Error(`Post not found: ${postId}`);
-    
+
     post.notes.push(note);
     return post;
   }
@@ -763,7 +763,7 @@ class SocialMediaIntelService {
   // ==================== Trending Topics ====================
 
   async getTrendingTopics(params?: {
-    platform?: Platform;
+    platform?: Platform | 'all';
     location?: string;
     limit?: number;
     disasterRelatedOnly?: boolean;
@@ -824,7 +824,7 @@ class SocialMediaIntelService {
     if (!trend) throw new Error(`Trend not found: ${trendId}`);
 
     const volumeChange = trend.volume > 0 ? ((metrics.volume - trend.volume) / trend.volume) * 100 : 100;
-    
+
     trend.volumeChange = volumeChange;
     trend.volume = metrics.volume;
     trend.sentiment = metrics.sentiment;
@@ -1066,7 +1066,7 @@ class SocialMediaIntelService {
     // Generate sentiment over time
     const sentimentOverTime: ReportMetrics['sentimentOverTime'] = [];
     const hourlyBuckets = new Map<number, { sentiment: number; count: number }>();
-    
+
     searchResult.posts.forEach(p => {
       const hour = Math.floor(p.postedAt.getTime() / (60 * 60 * 1000));
       const bucket = hourlyBuckets.get(hour) || { sentiment: 0, count: 0 };
@@ -1170,7 +1170,7 @@ class SocialMediaIntelService {
     postsNeedingVerification: number;
   }> {
     let posts = Array.from(this.posts.values());
-    
+
     if (incidentId) {
       posts = posts.filter(p => p.incidentId === incidentId);
     }
