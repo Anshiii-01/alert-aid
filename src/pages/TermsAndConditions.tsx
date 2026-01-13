@@ -2,6 +2,13 @@ import React from 'react';
 import styled from 'styled-components';
 import { productionColors } from '../styles/production-ui-system';
 
+const PageWrapper = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  color: ${productionColors.text.primary};
+`;
+
 const TermsWrapper = styled(PageWrapper)``;
 
 const TermsAndConditions: React.FC = () => (
