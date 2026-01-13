@@ -11,10 +11,16 @@ import urllib.parse
 import json
 import os
 import random
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # OpenWeatherMap API key
-OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "1801423b3942e324ab80f5b47afe0859")
 
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+
+if not OPENWEATHER_API_KEY:
+    raise RuntimeError("OPENWEATHER_API_KEY is not set")
 # USGS Earthquake API
 USGS_EARTHQUAKE_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 
