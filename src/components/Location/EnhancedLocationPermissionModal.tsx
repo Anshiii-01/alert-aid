@@ -225,6 +225,7 @@ interface EnhancedLocationPermissionModalProps {
   isOpen: boolean;
   onLocationGranted: (location: LocationData) => void;
   onClose?: () => void;
+  onSkip?: () => void;
 }
 
 export const EnhancedLocationPermissionModal: React.FC<EnhancedLocationPermissionModalProps> = ({
