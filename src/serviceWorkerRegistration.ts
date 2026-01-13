@@ -23,7 +23,7 @@ export const registerServiceWorker = () => {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   // New service worker available
-                  if (confirm('New version available! Reload to update?')) {
+                  if (window.confirm('New version available! Reload to update?')) {
                     window.location.reload();
                   }
                 }
