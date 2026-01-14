@@ -1,5 +1,5 @@
 import ProjectShowcase from "./pages/ProjectShowcase";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation as useRouterLocation } from 'react-router-dom';
 import { ThemeProvider as StyledThemeProvider } from 'styled-components';
