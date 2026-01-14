@@ -3,7 +3,7 @@
  * Displays ML-powered disaster severity predictions
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { Brain, AlertTriangle, TrendingUp, Users, DollarSign, Shield, RefreshCw } from 'lucide-react';
 import { aiPredictionService, DisasterFeatures, SeverityPrediction } from '../../services/aiPredictionService';
@@ -276,15 +276,15 @@ const LoadingSpinner = styled.div`
   }
 `;
 
-export const SeverityPredictionCard: React.FC<Props> = ({ 
+export const SeverityPredictionCard: React.FC<Props> = ({
   features,
-  autoPredict = true 
+  autoPredict = true
 }) => {
   const [prediction, setPrediction] = useState<SeverityPrediction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const defaultFeatures: DisasterFeatures = {
+  const defaultFeatures: DisasterFeatures = useMemo(() => ({
     disasterType: 'flood',
     rainfall: 250,
     waterLevel: 3.5,
@@ -293,12 +293,12 @@ export const SeverityPredictionCard: React.FC<Props> = ({
     historicalImpact: 72,
     timeOfYear: new Date().getMonth() + 1,
     timeOfDay: new Date().getHours(),
-  };
+  }), []);
 
-  const runPrediction = async () => {
+  const runPrediction = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const result = await aiPredictionService.predictSeverity(features || defaultFeatures);
       setPrediction(result);
@@ -308,13 +308,13 @@ export const SeverityPredictionCard: React.FC<Props> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [features, defaultFeatures]);
 
   useEffect(() => {
     if (autoPredict) {
       runPrediction();
     }
-  }, [features, autoPredict]);
+  }, [features, autoPredict, runPrediction]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;

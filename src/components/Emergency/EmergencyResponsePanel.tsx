@@ -153,8 +153,8 @@ const SOSButton = styled.button<{ isActive: boolean }>`
   gap: 4px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
-  background: ${({ isActive }) => 
-    isActive 
+  background: ${({ isActive }) =>
+    isActive
       ? 'linear-gradient(145deg, rgba(239, 68, 68, 0.8), rgba(220, 38, 38, 0.9))'
       : 'linear-gradient(145deg, rgba(239, 68, 68, 0.6), rgba(220, 38, 38, 0.7))'
   };
@@ -337,7 +337,7 @@ const EmergencyResponsePanel: React.FC = () => {
       isPrimary: true
     },
     {
-      id: '2', 
+      id: '2',
       name: 'Police',
       phone: '100',
       relationship: 'emergency-service',
@@ -386,13 +386,13 @@ const EmergencyResponsePanel: React.FC = () => {
 
     try {
       setStatus({ message: 'Executing emergency protocol...', type: 'warning' });
-      
+
       // Get current location with high accuracy
       const location = await getCurrentLocation();
-      
+
       // Send location to emergency contacts via multiple channels
       await notifyEmergencyContacts(location);
-      
+
       // Save emergency event to localStorage for recovery
       const emergencyEvent = {
         timestamp: Date.now(),
@@ -402,7 +402,7 @@ const EmergencyResponsePanel: React.FC = () => {
         status: 'active'
       };
       localStorage.setItem('activeEmergency', JSON.stringify(emergencyEvent));
-      
+
       // Call primary emergency number (112)
       const primaryContact = emergencyContacts.find(c => c.isPrimary);
       if (primaryContact) {
@@ -410,56 +410,57 @@ const EmergencyResponsePanel: React.FC = () => {
           window.open(`tel:${primaryContact.phone}`);
         }, 1000); // Small delay to let location send first
       }
-      
+
       // Update state with success and STOP the SOS active state to prevent loops
-      setSosState(prev => ({ 
-        ...prev, 
+      setSosState(prev => ({
+        ...prev,
         isActive: false, // Stop the active state
-        locationSent: true, 
-        contactsNotified: emergencyContacts.map(c => c.id) 
+        locationSent: true,
+        contactsNotified: emergencyContacts.map(c => c.id)
       }));
-      
+
       // Vibrate phone if supported
       if ('vibrate' in navigator) {
         navigator.vibrate([200, 100, 200, 100, 200]);
       }
-      
-      setStatus({ 
-        message: '✅ SOS SENT! Emergency services contacted and location shared.', 
-        type: 'success' 
+
+      setStatus({
+        message: '✅ SOS SENT! Emergency services contacted and location shared.',
+        type: 'success'
       });
-      
+
       // Keep success message visible longer
       setTimeout(() => {
-        setStatus({ 
-          message: 'Emergency active. Help is on the way. Stay calm and safe.', 
-          type: 'info' 
+        setStatus({
+          message: 'Emergency active. Help is on the way. Stay calm and safe.',
+          type: 'info'
         });
       }, 5000);
-      
+
     } catch (error) {
       console.error('SOS execution failed:', error);
-      
+
       // Even if location fails, still make the call
       const primaryContact = emergencyContacts.find(c => c.isPrimary);
       if (primaryContact) {
         window.open(`tel:${primaryContact.phone}`);
       }
-      
-      setStatus({ 
-        message: '⚠️ SOS partially sent. Location failed but calling emergency services. Please provide location verbally.', 
-        type: 'error' 
+
+      setStatus({
+        message: '⚠️ SOS partially sent. Location failed but calling emergency services. Please provide location verbally.',
+        type: 'error'
       });
-      
+
       // Stop active state even on error to prevent loops
       setSosState(prev => ({ ...prev, isActive: false }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emergencyContacts, medicalInfo, sosState.locationSent]);
 
   // SOS countdown timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (sosState.isActive && sosState.countdown > 0) {
       timer = setTimeout(() => {
         setSosState(prev => ({ ...prev, countdown: prev.countdown - 1 }));
@@ -468,7 +469,7 @@ const EmergencyResponsePanel: React.FC = () => {
       // Execute SOS actions
       executeSOS();
     }
-    
+
     return () => clearTimeout(timer);
   }, [sosState.isActive, sosState.countdown, executeSOS]);
 
@@ -504,7 +505,7 @@ const EmergencyResponsePanel: React.FC = () => {
         reject(new Error('Geolocation not supported by this device'));
         return;
       }
-      
+
       // First try high accuracy GPS
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -513,7 +514,7 @@ const EmergencyResponsePanel: React.FC = () => {
             lon: position.coords.longitude,
             accuracy: position.coords.accuracy
           };
-          
+
           // Try to get human-readable address
           try {
             const address = await reverseGeocode(location.lat, location.lon);
@@ -524,7 +525,7 @@ const EmergencyResponsePanel: React.FC = () => {
         },
         (error) => {
           console.error('High accuracy GPS failed:', error);
-          
+
           // Fallback to lower accuracy
           navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -564,7 +565,7 @@ const EmergencyResponsePanel: React.FC = () => {
     const timestamp = new Date().toLocaleString();
     const accuracyText = location.accuracy ? ` (±${Math.round(location.accuracy)}m)` : '';
     const locationText = location.address || `${location.lat.toFixed(6)}, ${location.lon.toFixed(6)}`;
-    
+
     const emergencyMessage = `🚨 EMERGENCY ALERT from Alert Aid App
     
 Time: ${timestamp}
@@ -593,9 +594,9 @@ This is an automated emergency alert. Please respond immediately.`;
       if (navigator.clipboard) {
         try {
           await navigator.clipboard.writeText(emergencyMessage);
-          setStatus({ 
-            message: '📋 Emergency details copied to clipboard. Share with contacts!', 
-            type: 'success' 
+          setStatus({
+            message: '📋 Emergency details copied to clipboard. Share with contacts!',
+            type: 'success'
           });
         } catch (clipboardError) {
           console.error('Clipboard write failed:', clipboardError);
@@ -631,10 +632,10 @@ This is an automated emergency alert. Please respond immediately.`;
       return true;
     } catch (error) {
       console.error('Emergency notification failed:', error);
-      
+
       // Fallback: show alert dialog with emergency info
       alert(`EMERGENCY ALERT!\n\n${emergencyMessage}\n\nPlease manually contact emergency services and share this information.`);
-      
+
       throw error;
     }
   };
@@ -648,18 +649,18 @@ This is an automated emergency alert. Please respond immediately.`;
       phone: phone,
       context: sosState.isActive ? 'emergency' : 'normal'
     };
-    
+
     const existingLogs = JSON.parse(localStorage.getItem('emergencyCallLogs') || '[]');
     existingLogs.push(callLog);
     localStorage.setItem('emergencyCallLogs', JSON.stringify(existingLogs.slice(-50))); // Keep last 50 calls
-    
+
     // Show feedback
-    setStatus({ 
-      message: `Calling ${contactName || phone}...`, 
-      type: 'info' 
+    setStatus({
+      message: `Calling ${contactName || phone}...`,
+      type: 'info'
     });
     setTimeout(() => setStatus(null), 2000);
-    
+
     // Make the call
     window.open(`tel:${phone}`);
   };
@@ -667,7 +668,7 @@ This is an automated emergency alert. Please respond immediately.`;
   // Load data from localStorage
   useEffect(() => {
     const savedContacts = localStorage.getItem('emergencyContacts');
-    
+
     if (savedContacts) {
       setEmergencyContacts(JSON.parse(savedContacts));
     }
@@ -686,10 +687,10 @@ This is an automated emergency alert. Please respond immediately.`;
           {sosState.isActive ? 'SOS ACTIVE' : 'READY'}
         </LiveBadge>
       </Header>
-      
+
       {/* Enhanced SOS Button */}
       <SOSSection>
-        <SOSButton 
+        <SOSButton
           isActive={sosState.isActive}
           onClick={sosState.isActive ? cancelSOS : startSOS}
           onDoubleClick={() => {
@@ -716,15 +717,15 @@ This is an automated emergency alert. Please respond immediately.`;
             </>
           )}
         </SOSButton>
-        
+
         <SOSDescription>
-          {sosState.isActive 
+          {sosState.isActive
             ? `⏱️ Emergency alert in ${sosState.countdown}s — Click to cancel`
             : '🆘 Click to start SOS countdown • Double-click for immediate SOS'
           }
         </SOSDescription>
       </SOSSection>
-      
+
       {status && (
         <StatusMessage type={status.type}>
           {status.message}
