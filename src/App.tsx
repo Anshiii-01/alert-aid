@@ -54,7 +54,7 @@ const cleanupInvalidCaches = () => {
   try {
     // Only remove clearly invalid or corrupted cache entries
     const keysToCheck = ['enhanced-location-cache', 'location-override'];
-    
+
     keysToCheck.forEach(key => {
       const value = localStorage.getItem(key);
       if (value) {
@@ -78,10 +78,10 @@ const AppContent: React.FC = () => {
   const { theme: themeMode } = useThemeContext();
   const navigate = useNavigate();
   const routerLocation = useRouterLocation();
-  
+
   // Get the appropriate theme based on mode
   const currentTheme = themeMode === 'light' ? lightTheme : darkTheme;
-  
+
   // Derive current page from the URL path
   const currentPage = React.useMemo(() => {
     const path = routerLocation.pathname.replace('/', '') || 'home';
@@ -93,14 +93,14 @@ const AppContent: React.FC = () => {
     const targetPath = page === 'home' ? '/' : `/${page}`;
     navigate(targetPath);
   }, [navigate]);
-  
+
   return (
     <StyledThemeProvider theme={currentTheme}>
       <SkipToContent href="#main-content">
         Skip to main content
       </SkipToContent>
       <div className="App" id="main-content">
-        <NavigationBar 
+        <NavigationBar
           currentPage={currentPage}
           onNavigate={handleNavigate}
         />
@@ -120,12 +120,12 @@ const AppContent: React.FC = () => {
           <Footer />
         </ErrorBoundary>
       </div>
-      
+
       {/* Location Permission Modal - Blocks dashboard until location is set */}
       <EnhancedLocationPermissionModal
         isOpen={showLocationModal}
         onLocationGranted={setLocation}
-        onClose={() => {}} // No close - modal is required
+        onClose={() => { }} // No close - modal is required
       />
     </StyledThemeProvider>
   );
@@ -145,7 +145,7 @@ function App() {
         <NotificationProvider>
           <LocationProvider>
             <GeolocationProvider>
-              <Router>
+              <Router basename={process.env.PUBLIC_URL}>
                 {/* Global starfield sits behind everything */}
                 <Starfield />
                 <AppContent />

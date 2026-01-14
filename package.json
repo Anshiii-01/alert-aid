@@ -2,7 +2,7 @@
   "name": "alert-aid-enhanced",
   "version": "1.0.0",
   "private": true,
-  "homepage": ".",
+  "homepage": "https://anshiii-01.github.io/alert-aid/",
   "author": "Ayush",
   "description": "Enhanced Disaster Management System with Real-time Alerts and ML Predictions",
   "dependencies": {
@@ -28,7 +28,7 @@
     "react-i18next": "^16.5.1",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.12.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^0.0.0",
     "recharts": "^3.6.0",
     "styled-components": "^6.1.19",
     "three": "^0.180.0",
