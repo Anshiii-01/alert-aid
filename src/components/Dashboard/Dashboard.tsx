@@ -2,11 +2,11 @@ import React, { useCallback, useState, useEffect, Suspense, useRef } from 'react
 import styled, { keyframes, css } from 'styled-components';
 import { spacing, breakpoints } from '../../styles/spacing';
 import { enhancedSpacing, enhancedGrid } from '../../styles/enhanced-design-system';
-import { 
-  productionColors, 
-  productionAnimations, 
+import {
+  productionColors,
+  productionAnimations,
   productionCard,
-  productionScrollbar 
+  productionScrollbar
 } from '../../styles/production-ui-system';
 import CurrentAlerts from './CurrentAlerts';
 import MLPredictionAccuracy from './MLPredictionAccuracy';
@@ -26,7 +26,7 @@ import { LoadingOverlay, SkeletonDashboard } from '../Layout/LoadingStates';
 import { RealTimeIndicator } from '../common/RealTimeIndicator';
 import { useAutoRefresh, useRefreshSettings } from '../../hooks/useAutoRefresh';
 import { useLiveDataExport } from '../../services/liveDataExport';
-import { RefreshCw, Clock } from 'lucide-react';
+
 import { enhancedLocationService } from '../../services/enhancedLocationService';
 import SimpleWeatherService from '../../services/simpleWeatherService';
 import enhancedForecastService from '../../services/enhancedForecastService';
@@ -37,7 +37,7 @@ import GlobeRiskHero from './GlobeRiskHero';
 import { ForecastData } from '../../types';
 import ErrorBoundary from '../common/ErrorBoundary';
 import { useCurrentAlerts } from '../../hooks/useDashboard';
-import { useLocation } from '../../contexts/LocationContext';
+
 
 // Alert risk severity weights for risk calculation
 const SEVERITY_WEIGHTS = {
@@ -55,20 +55,20 @@ const SEVERITY_WEIGHTS = {
  */
 const calculateAlertRisk = (alerts: any[]): number => {
   if (!alerts || alerts.length === 0) return 0;
-  
+
   const totalWeight = alerts.reduce((sum, alert) => {
     const severity = alert.severity?.toLowerCase() || 'low';
     const weight = SEVERITY_WEIGHTS[severity as keyof typeof SEVERITY_WEIGHTS] || 1;
     return sum + weight;
   }, 0);
-  
+
   // Normalize to 0-10 scale based on average severity
   // Max possible average is 10 (all critical), min is 1 (all info)
   const averageWeight = totalWeight / alerts.length;
   const normalizedRisk = Math.min(averageWeight, 10);
-  
+
   logger.log(`📊 Alert risk calculated: ${alerts.length} alerts, risk: ${normalizedRisk.toFixed(2)}`);
-  
+
   return normalizedRisk;
 };
 
@@ -336,50 +336,7 @@ const DiagnosticsSection = styled.section`
   grid-area: diagnostics;
 `;
 
-// Live Data Status Bar
-const LiveDataStatusBar = styled.div`
-  position: fixed;
-  top: 70px;
-  left: 0;
-  right: 0;
-  height: 32px;
-  background: ${({ theme }) => theme.colors.surface.elevated};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.border.default};
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 ${enhancedSpacing[6]};
-  z-index: 1000;
-  font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  
-  .status-section {
-    display: flex;
-    align-items: center;
-    gap: ${enhancedSpacing[3]};
-  }
-  
-  .refresh-indicator {
-    display: flex;
-    align-items: center;
-    gap: ${enhancedSpacing[1]};
-    color: ${({ theme }) => theme.colors.success};
-    
-    &.refreshing {
-      color: ${({ theme }) => theme.colors.primary[400]};
-    }
-    
-    svg {
-      width: 12px;
-      height: 12px;
-    }
-  }
-  
-  .next-refresh {
-    font-size: 10px;
-    opacity: 0.8;
-  }
-`;
+
 
 const Dashboard: React.FC = () => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -392,16 +349,16 @@ const Dashboard: React.FC = () => {
   const [forecastIsLive, setForecastIsLive] = useState<boolean>(true);
   const [aqiData, setAqiData] = useState<AQIData | null>(null);
   const [aqiLoading, setAqiLoading] = useState(false);
-  
+
   const [aqiError, setAqiError] = useState<boolean>(false);
-  
+
   // Ref for emergency section scroll
   const emergencySectionRef = useRef<HTMLDivElement>(null);
-  
+
   const { data: alerts } = useCurrentAlerts();
   const { refreshInterval, autoRefreshEnabled } = useRefreshSettings();
   const { exportBothFormats } = useLiveDataExport();
-  
+
   // Scroll to emergency section
   const scrollToEmergency = useCallback(() => {
     emergencySectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -413,7 +370,7 @@ const Dashboard: React.FC = () => {
       setForecastError(false);
       const loc = await enhancedLocationService.getCurrentLocation();
       const forecast = await enhancedForecastService.getForecast(loc.latitude, loc.longitude);
-      
+
       // Convert to component format
       const convertedForecast = forecast.forecast.map(day => ({
         day: day.day,
@@ -423,11 +380,11 @@ const Dashboard: React.FC = () => {
         windSpeed: day.wind_speed,
         conditions: day.conditions,
       }));
-      
+
       setForecastData(convertedForecast);
       setForecastSource(forecast.cached ? `${forecast.source} (cached)` : forecast.source);
       setForecastIsLive(forecast.is_real);
-      
+
       logger.log('📅 Enhanced 7-day forecast loaded:', {
         days: convertedForecast.length,
         source: forecast.source,
@@ -450,9 +407,9 @@ const Dashboard: React.FC = () => {
       setAqiError(false);
       const loc = await enhancedLocationService.getCurrentLocation();
       const aqi = await airQualityService.getAirQuality(loc.latitude, loc.longitude);
-      
+
       setAqiData(aqi);
-      
+
       logger.log('🌬️ Air quality data loaded:', {
         aqi: aqi.aqi,
         level: aqi.level,
@@ -472,11 +429,11 @@ const Dashboard: React.FC = () => {
   const calculateGlobalRisk = useCallback(async () => {
     try {
       setIsCalculatingRisk(true);
-      
+
       // Fetch live weather data using simple reliable service
       const loc = await enhancedLocationService.getCurrentLocation();
       const weatherData = await SimpleWeatherService.getWeather(loc.latitude, loc.longitude);
-      
+
       const weatherFactors: WeatherRiskFactors = {
         temp: weatherData.current.temp,
         feelsLike: weatherData.current.feels_like,
@@ -487,22 +444,22 @@ const Dashboard: React.FC = () => {
         visibility: weatherData.current.visibility,
         uvIndex: weatherData.current.uvi
       };
-      
+
       // Calculate weather risk
       const weatherRisk = RiskCalculationService.calculateWeatherRisk(weatherFactors);
-      
+
       // Calculate alert risk from current alerts
       const alertRisk = calculateAlertRisk(alerts || []);
-      
+
       // Get pollution risk factor (0-1) and convert to 0-10 scale
-      const pollutionRisk = aqiData 
+      const pollutionRisk = aqiData
         ? airQualityService.getPollutionRiskFactor(aqiData.aqi) * 10
         : 0;
-      
+
       // Calculate global risk with pollution factor
       const baseGlobalRisk = RiskCalculationService.calculateGlobalRisk(weatherRisk, alertRisk);
       const globalRisk = Math.min(10, baseGlobalRisk + (pollutionRisk * 0.3)); // Pollution adds up to 30% boost
-      
+
       setGlobalRiskScore(globalRisk);
       logger.log('🎯 Global risk calculated:', {
         weather: weatherRisk,
@@ -529,7 +486,7 @@ const Dashboard: React.FC = () => {
     ]);
   }, [fetchForecastData, fetchAQIData, calculateGlobalRisk]);
 
-  const { lastRefresh, nextRefresh, isRefreshing, manualRefresh } = useAutoRefresh({
+  const { lastRefresh, isRefreshing, manualRefresh } = useAutoRefresh({
     interval: Math.max(refreshInterval, 5), // Minimum 5 minutes to prevent excessive API calls
     enabled: autoRefreshEnabled,
     onRefresh: refreshAllData
@@ -539,11 +496,11 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const loadDashboard = async () => {
       await refreshAllData();
-      
+
       // Simulate component initialization
       await new Promise(resolve => setTimeout(resolve, 1500));
       setDashboardLoaded(true);
-      
+
       // Remove loading overlay after smooth transition
       setTimeout(() => {
         setIsInitialLoading(false);
@@ -561,16 +518,7 @@ const Dashboard: React.FC = () => {
     }
   }, [aqiData, alerts, dashboardLoaded]);
 
-  // Memoize time formatting to prevent excessive re-renders
-  const formatTimeUntilNextRefresh = useCallback((nextRefresh: Date | null) => {
-    if (!nextRefresh) return '';
-    const now = new Date();
-    const diff = nextRefresh.getTime() - now.getTime();
-    if (diff <= 0) return '0:00';
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }, []);
+
 
   const handleDownloadReport = useCallback(() => {
     logger.log('📄 Downloading comprehensive live data report...');
@@ -586,8 +534,8 @@ const Dashboard: React.FC = () => {
   if (isInitialLoading) {
     return (
       <DashboardContainer>
-        <LoadingOverlay 
-          message="Initializing Alert Aid Dashboard..." 
+        <LoadingOverlay
+          message="Initializing Alert Aid Dashboard..."
           fullScreen={false}
         />
         {!dashboardLoaded && <SkeletonDashboard />}
@@ -598,11 +546,11 @@ const Dashboard: React.FC = () => {
   return (
     <DashboardContainer>
       {/* Real-Time Status Indicator */}
-      <div style={{ 
-        position: 'fixed', 
-        top: '80px', 
-        right: '24px', 
-        zIndex: 100 
+      <div style={{
+        position: 'fixed',
+        top: '80px',
+        right: '24px',
+        zIndex: 100
       }}>
         <RealTimeIndicator
           lastUpdated={lastRefresh}
@@ -614,7 +562,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <GeolocationManager />
-      
+
       <DashboardGrid className="dashboard-grid" style={{ paddingTop: '32px' }}> {/* Account for status bar */}
         {/* Left Sidebar - Alerts & Controls */}
         <LeftSidebar>
@@ -623,16 +571,16 @@ const Dashboard: React.FC = () => {
               <CurrentAlerts onEmergencyClick={scrollToEmergency} />
             </ErrorBoundary>
           </DashboardCard>
-          
+
           <DashboardCard animationDelay={200}>
             <ErrorBoundary componentName="ML Prediction">
               <MLPredictionAccuracy />
             </ErrorBoundary>
           </DashboardCard>
-          
+
           <DashboardCard animationDelay={300}>
             <ErrorBoundary componentName="Action Buttons">
-              <ActionButtons 
+              <ActionButtons
                 onDownloadReport={handleDownloadReport}
                 onRefreshData={handleRefreshData}
               />
@@ -644,8 +592,8 @@ const Dashboard: React.FC = () => {
         <CenterArea>
           <ErrorBoundary componentName="Globe Visualization">
             <Suspense fallback={<LoadingOverlay message="Loading Globe..." />}>
-              <GlobeRiskHero 
-                score={globalRiskScore} 
+              <GlobeRiskHero
+                score={globalRiskScore}
                 isCalculating={isCalculatingRisk}
                 alerts={alerts || []}
               />
@@ -660,7 +608,7 @@ const Dashboard: React.FC = () => {
               <AIMLSummary floodProbability={globalRiskScore} />
             </ErrorBoundary>
           </DashboardCard>
-          
+
           <DashboardCard animationDelay={250}>
             <ErrorBoundary componentName="Weather Forecast">
               {forecastError ? (
@@ -668,7 +616,7 @@ const Dashboard: React.FC = () => {
                   Unable to load forecast data. Please try again later.
                 </div>
               ) : (
-                <SevenDayForecast 
+                <SevenDayForecast
                   forecast={forecastData || undefined}
                   isLive={forecastIsLive}
                   source={forecastSource}
@@ -676,7 +624,7 @@ const Dashboard: React.FC = () => {
               )}
             </ErrorBoundary>
           </DashboardCard>
-          
+
           {/* Alert Notification Settings */}
           <DashboardCard animationDelay={300}>
             <ErrorBoundary componentName="Alert Notification Settings">
