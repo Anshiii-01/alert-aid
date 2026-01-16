@@ -165,15 +165,24 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
   };
 
   // Trigger alert notifications for new critical/high alerts
+  // Trigger alert notifications for new critical/high alerts
   useEffect(() => {
-    if (displayAlerts && displayAlerts.length > 0) {
-      displayAlerts.forEach(alert => {
-        // Check if this is a new alert we haven't notified about
-        const alertId = alert.id || `${alert.event}-${alert.onset}`;
+    // Prevent processing if loading or error to avoid clearing history prematurely
+    if (loading || error || !displayAlerts) {
+      return;
+    }
 
+    const currentAlertIds = new Set<string>();
+
+    if (displayAlerts.length > 0) {
+      displayAlerts.forEach(alert => {
+        const alertId = alert.id || `${alert.event}-${alert.onset}`;
+        currentAlertIds.add(alertId);
+
+        // Check if this is a new alert we haven't notified about
         if (!previousAlertsRef.current.has(alertId)) {
           // This is a new alert - trigger notification
-          previousAlertsRef.current.add(alertId);
+          // We don't need to add to previousAlertsRef here as we'll sync it at the end
 
           // Trigger sound and haptic feedback for critical/high alerts
           if (alert.severity === 'Critical' || alert.severity === 'High') {
@@ -216,7 +225,11 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
         }
       });
     }
-  }, [displayAlerts, addNotification]);
+
+    // MEMORY LEAK FIX: Sychronize the ref with currently active alerts.
+    // This removes any old IDs that are no longer in the displayAlerts list.
+    previousAlertsRef.current = currentAlertIds;
+  }, [displayAlerts, addNotification, loading, error, navigate]);
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();

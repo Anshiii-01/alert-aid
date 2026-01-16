@@ -7,7 +7,6 @@ import '@testing-library/jest-dom';
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    writable: true,
     value: (query: string) => ({
         matches: false,
         media: query,
