@@ -4,7 +4,7 @@
  */
 
 // Audit action
-type AuditAction = 
+type AuditAction =
   | 'create'
   | 'read'
   | 'update'
@@ -27,7 +27,7 @@ type AuditAction =
   | 'deny';
 
 // Resource type
-type ResourceType = 
+type ResourceType =
   | 'user'
   | 'alert'
   | 'disaster'
@@ -55,9 +55,13 @@ type AuditSeverity = 'debug' | 'info' | 'warning' | 'error' | 'critical';
 type AuditStatus = 'success' | 'failure' | 'partial' | 'pending';
 
 // Compliance framework
+// Compliance framework
 type ComplianceFramework = 'gdpr' | 'hipaa' | 'sox' | 'pci_dss' | 'iso27001' | 'nist' | 'it_act_india';
+
+/**
  * Comprehensive audit trail, security logging, and compliance tracking
  */
+
 
 // Log level
 type LogLevel = 'debug' | 'info' | 'warning' | 'error' | 'critical';
@@ -183,6 +187,8 @@ interface ComplianceInfo {
   sensitiveData: boolean;
   retentionPolicy: RetentionPolicy;
   legalHold: boolean;
+}
+
 // Audit event
 interface AuditEvent {
   id: string;
@@ -381,6 +387,8 @@ interface AuditAlert {
   conditions: AlertCondition[];
   actions: AlertAction[];
   throttle: number; // in minutes
+}
+
 // Compliance report
 interface ComplianceReport {
   id: string;
@@ -497,7 +505,6 @@ interface AuditStatistics {
   piiAccessCount: number;
 }
 
-// Sensitive fields to mask
 const SENSITIVE_FIELDS = [
   'password',
   'passwordHash',
@@ -516,21 +523,6 @@ const SENSITIVE_FIELDS = [
   'accountNumber',
 ];
 
-class AuditLoggingService {
-  private static instance: AuditLoggingService;
-  private logs: AuditLog[] = [];
-  private policies: Map<string, AuditPolicy> = new Map();
-  private alerts: Map<string, AuditAlert> = new Map();
-  private reports: Map<string, AuditReport> = new Map();
-  private listeners: ((event: string, data: unknown) => void)[] = [];
-  private context: Partial<AuditContext> = {
-    environment: 'production',
-    service: 'alert-aid',
-    version: '1.0.0',
-  };
-
-  private constructor() {
-    this.initializeDefaultPolicies();
 // Export configuration
 interface ExportConfig {
   format: 'json' | 'csv' | 'pdf' | 'xml';
@@ -1385,15 +1377,11 @@ export type {
   EventCategory,
   EventStatus,
   ActorType,
-  ResourceType,
-  RetentionPolicy,
   AuditEvent,
   AuditLogFilter,
   AuditLogSummary,
-  AuditPolicy,
   ComplianceReport,
   AuditAlertRule,
-  ExportConfig,
   ArchivedLog,
   SessionActivity,
   SecurityIncident,

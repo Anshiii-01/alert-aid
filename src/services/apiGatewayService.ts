@@ -143,90 +143,8 @@ interface ExampleDoc {
   name: string;
   request?: Record<string, unknown>;
   response?: Record<string, unknown>;
-  status: ApiStatus;
-  version: string;
-  authentication: {
-    required: boolean;
-    type: AuthType;
-    scopes?: string[];
-  };
-  rateLimit: {
-    enabled: boolean;
-    requests: number;
-    window: number;
-    strategy: RateLimitStrategy;
-    keyBy?: 'ip' | 'user' | 'api_key' | 'custom';
-  };
-  request: {
-    headers?: { name: string; required: boolean; description: string }[];
-    queryParams?: { name: string; type: string; required: boolean; description: string }[];
-    pathParams?: { name: string; type: string; description: string }[];
-    body?: {
-      contentType: string;
-      schema?: Record<string, unknown>;
-      example?: unknown;
-    };
-  };
-  response: {
-    contentType: string;
-    statusCodes: {
-      code: number;
-      description: string;
-      schema?: Record<string, unknown>;
-      example?: unknown;
-    }[];
-  };
-  backend: {
-    type: 'http' | 'lambda' | 'mock' | 'websocket';
-    url?: string;
-    method?: HttpMethod;
-    timeout: number;
-    retries: number;
-    circuitBreaker?: {
-      enabled: boolean;
-      threshold: number;
-      timeout: number;
-    };
-  };
-  transformation: {
-    request?: TransformRule[];
-    response?: TransformRule[];
-  };
-  validation: {
-    enabled: boolean;
-    validateRequest: boolean;
-    validateResponse: boolean;
-    strictMode: boolean;
-  };
-  caching: {
-    enabled: boolean;
-    ttl: number;
-    keyParams?: string[];
-    varyHeaders?: string[];
-  };
-  cors: {
-    enabled: boolean;
-    allowedOrigins: string[];
-    allowedMethods: HttpMethod[];
-    allowedHeaders: string[];
-    exposeHeaders: string[];
-    maxAge: number;
-    credentials: boolean;
-  };
-  logging: {
-    enabled: boolean;
-    level: 'none' | 'error' | 'info' | 'debug';
-    includeRequestBody: boolean;
-    includeResponseBody: boolean;
-  };
-  tags: string[];
-  metadata: {
-    createdAt: Date;
-    createdBy: string;
-    updatedAt: Date;
-    updatedBy: string;
-  };
 }
+
 
 // Transform rule
 interface TransformRule {
@@ -691,34 +609,7 @@ const DEFAULT_GATEWAY_CONFIG: GatewayConfig = {
   },
 };
 
-class ApiGatewayService {
-  private static instance: ApiGatewayService;
-  private endpoints: Map<string, ApiEndpoint> = new Map();
-  private apiKeys: Map<string, ApiKey> = new Map();
-  private routes: Map<string, Route> = new Map();
-  private services: Map<string, ServiceHealth> = new Map();
-  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
-  private rateLimitBuckets: Map<string, { count: number; resetAt: Date }> = new Map();
-  private requestLogs: RequestLog[] = [];
-  private webhooks: Map<string, WebhookConfig> = new Map();
-  private webhookDeliveries: WebhookDelivery[] = [];
-  private config: GatewayConfig = DEFAULT_GATEWAY_CONFIG;
-  averageLatency: number;
-  p50Latency: number;
-  p95Latency: number;
-  p99Latency: number;
-  byStatusCode: Record<string, number>;
-  byEndpoint: { endpointId: string; path: string; requests: number; avgLatency: number }[];
-  byApiKey: { apiKeyId: string; name: string; requests: number }[];
-  cacheHitRate: number;
-  rateLimitExceeded: number;
-  authFailures: number;
-  errors: { type: string; count: number }[];
-  bandwidth: {
-    inbound: number;
-    outbound: number;
-  };
-}
+
 
 // Health check
 interface HealthCheck {
@@ -1305,7 +1196,6 @@ class ApiGatewayService {
    */
   private generateRandomString(length: number): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   }
 
@@ -1548,6 +1438,9 @@ class ApiGatewayService {
     }
 
     this.emit('request_logged', log);
+  }
+
+  /**
    * Get APIs
    */
   public getApis(filter?: { status?: ApiStatus }): ApiDefinition[] {
@@ -1605,41 +1498,6 @@ class ApiGatewayService {
   /**
    * Create API key
    */
-  public async createApiKey(data: {
-    name: string;
-    description?: string;
-    ownerId: string;
-    ownerType: ApiKey['ownerType'];
-    permissions: string[];
-    expiresAt?: Date;
-    rateLimit?: RateLimitConfig;
-    allowedOrigins?: string[];
-    allowedIPs?: string[];
-  }): Promise<ApiKey> {
-    const id = `key-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
-    const key = `ak_${this.generateRandomString(32)}`;
-
-    const apiKey: ApiKey = {
-      id,
-      key,
-      keyHash: Buffer.from(key).toString('base64'),
-      name: data.name,
-      description: data.description,
-      ownerId: data.ownerId,
-      ownerType: data.ownerType,
-      status: 'active',
-      permissions: data.permissions,
-      rateLimit: data.rateLimit,
-      allowedOrigins: data.allowedOrigins,
-      allowedIPs: data.allowedIPs,
-      expiresAt: data.expiresAt,
-      usageCount: 0,
-      metadata: {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    this.apiKeys.set(id, apiKey);
   public createApiKey(data: {
     name: string;
     owner: ApiKey['owner'];
@@ -1742,13 +1600,8 @@ class ApiGatewayService {
       return health ? [health] : [];
     }
     return Array.from(this.services.values());
-  public revokeApiKey(id: string): void {
-    const apiKey = this.apiKeys.get(id);
-    if (!apiKey) throw new Error('API key not found');
-
-    apiKey.status = 'revoked';
-    this.emit('api_key_revoked', apiKey);
   }
+
 
   /**
    * Validate API key
@@ -1948,7 +1801,12 @@ class ApiGatewayService {
   public updateConfig(updates: Partial<GatewayConfig>): void {
     this.config = { ...this.config, ...updates };
     this.emit('config_updated', this.config);
-  public getMetrics(period: { start: Date; end: Date }): GatewayMetrics {
+  }
+
+  /**
+   * Get metrics
+   */
+  public getMetrics(period: { start: Date; end: Date }): ApiMetrics {
     const logs = this.requestLogs.filter(
       (l) => l.timestamp >= period.start && l.timestamp <= period.end
     );
@@ -2087,15 +1945,8 @@ export type {
   WebhookDelivery,
   RequestLog,
   GatewayConfig,
-  AuthType,
-  RateLimitStrategy,
-  ApiEndpoint,
   TransformRule,
   ApiDefinition,
-  ApiKey,
-  RequestLog,
-  RateLimitInfo,
-  CircuitBreakerState,
   GatewayMetrics,
   HealthCheck,
   GatewayPlugin,
