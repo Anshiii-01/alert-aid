@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { AlertTriangle, Clock, RefreshCw, ExternalLink } from 'lucide-react';
 import { Card, Heading, Text, StatusIndicator, Flex, Button } from '../../styles/components';
@@ -63,13 +64,13 @@ const AlertItem = styled.div<{ severity: string }>`
     bottom: 0;
     width: 4px;
     background: ${({ severity, theme }) => {
-      switch (severity) {
-        case 'Critical': return theme.colors.primary[600]; /* Vivid red for dark mode */
-        case 'High': return theme.colors.primary[500];     /* Coral for high */
-        case 'Medium': return theme.colors.warning[500];   /* Amber for medium */
-        default: return theme.colors.success[500];         /* Green for low */
-      }
-    }};
+    switch (severity) {
+      case 'Critical': return theme.colors.primary[600]; /* Vivid red for dark mode */
+      case 'High': return theme.colors.primary[500];     /* Coral for high */
+      case 'Medium': return theme.colors.warning[500];   /* Amber for medium */
+      default: return theme.colors.success[500];         /* Green for low */
+    }
+  }};
   }
 `;
 
@@ -135,6 +136,7 @@ interface CurrentAlertsProps {
 const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
   const { data: alertsData, loading, error, refetch } = useCurrentAlerts();
   const { addNotification } = useNotifications();
+  const navigate = useNavigate();
   const previousAlertsRef = useRef<Set<string>>(new Set());
 
   // alertsData is already an array of alerts from useDashboard
@@ -167,24 +169,24 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
     if (displayAlerts && displayAlerts.length > 0) {
       displayAlerts.forEach(alert => {
         // Check if this is a new alert we haven't notified about
-        const alertId = alert.id || `${alert.event}-${alert.start}`;
-        
+        const alertId = alert.id || `${alert.event}-${alert.onset}`;
+
         if (!previousAlertsRef.current.has(alertId)) {
           // This is a new alert - trigger notification
           previousAlertsRef.current.add(alertId);
-          
+
           // Trigger sound and haptic feedback for critical/high alerts
           if (alert.severity === 'Critical' || alert.severity === 'High') {
             const level = mapSeverityToAlertLevel(alert.severity);
             const areaText = alert.areas && alert.areas.length > 0 ? alert.areas.join(', ') : 'your area';
-            
+
             alertNotificationService.triggerAlert(
               level,
               `${alert.severity} Alert: ${alert.event}`,
               `${alert.description} in ${areaText}`
             );
           }
-          
+
           // Add to notification center
           if (alert.severity === 'Critical' || alert.severity === 'High') {
             const areaText = alert.areas && alert.areas.length > 0 ? alert.areas.join(', ') : 'your area';
@@ -197,11 +199,16 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
               actions: [
                 {
                   label: 'View Details',
-                  action: () => console.log('View alert details:', alert.id)
+                  action: () => navigate('/alerts')
                 },
                 {
                   label: 'Mark Safe',
-                  action: () => console.log('Mark location safe:', areaText)
+                  action: () => addNotification({
+                    type: 'success',
+                    title: 'Marked as Safe',
+                    message: `You have successfully marked ${areaText} as safe.`,
+                    duration: 3000
+                  })
                 }
               ]
             });
@@ -217,7 +224,7 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
     const diffMs = now.getTime() - alertTime.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (diffHours > 0) {
       return `${diffHours}h ago`;
     } else {
@@ -280,12 +287,12 @@ const CurrentAlerts: React.FC<CurrentAlertsProps> = ({ onEmergencyClick }) => {
           {loading && <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} />}
         </Flex>
       </AlertsHeader>
-      
+
       <div>
         {displayAlerts && displayAlerts.length > 0 ? (
           displayAlerts.slice(0, 5).map((alert) => (
-            <AlertItem 
-              key={alert.id} 
+            <AlertItem
+              key={alert.id}
               severity={alert.severity}
               onClick={onEmergencyClick}
               style={{ cursor: onEmergencyClick ? 'pointer' : 'default' }}
